@@ -1,0 +1,6 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--Images-->
+    <BitmapImage x:Key="CloseWindow" UriSource="/CGA;component/Resources/Images/close.png"/>
+    <BitmapImage x:Key="MinimizeWindow" UriSource="/CGA;component/Resources/Images/minimize.png"/>
+</ResourceDictionary>

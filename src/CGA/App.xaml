@@ -1,0 +1,24 @@
+﻿<Application x:Class="CGA.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:viewModels="clr-namespace:CGA.MVVM.ViewModels"
+             xmlns:view="clr-namespace:CGA.MVVM.Views"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <!--Style Resources-->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Style/UIColors.xaml"/>
+                <ResourceDictionary Source="Style/CustomComponents/TopMenuButtonStyle.xaml"/>
+                <ResourceDictionary Source="Style/CustomComponents/InViewButtonStyle.xaml"/>
+                <ResourceDictionary Source="Resources/StatResources.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Views -->
+          <DataTemplate DataType="{x:Type viewModels:CanvasViewModel}">
+                <view:CanvasView/>
+            </DataTemplate>
+            
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

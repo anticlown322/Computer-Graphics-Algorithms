@@ -1,0 +1,36 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!--BackgroundColors-->
+    <Color x:Key="PrimaryColorLight">#343147</Color>
+    <Color x:Key="PrimaryColorDark">#272537</Color>
+    <SolidColorBrush x:Key="PrimaryColorLight_Solid">#343147</SolidColorBrush>
+    <SolidColorBrush x:Key="PrimaryColorDark_Solid">#272537</SolidColorBrush>
+    
+    <Color x:Key="SecondaryColor">#1d1b2b</Color>
+    <SolidColorBrush x:Key="SecondaryColor_Solid">#1d1b2b</SolidColorBrush>
+
+    <!--Window Border Color-->
+    <Color x:Key="WindowBorderColor1">#6D2FFF</Color>
+    <Color x:Key="WindowBorderColor2">#FB539B</Color>
+    <Color x:Key="WindowBorderColor3">#836EFB</Color>
+    <SolidColorBrush x:Key="WindowBorderColor1_Solid">#6D2FFF</SolidColorBrush>
+    <SolidColorBrush x:Key="WindowBorderColor2_Solid">#FB539B</SolidColorBrush>
+    <SolidColorBrush x:Key="WindowBorderColor3_Solid">#836EFB</SolidColorBrush>
+
+    <!--Button Colors-->
+    <Color x:Key="MenuButtonColorLight">#272537</Color>
+    <Color x:Key="MenuButtonColorAverage">#211e2b</Color>
+    <Color x:Key="MenuButtonColorDark">#1b1924</Color>
+    <SolidColorBrush x:Key="MenuButtonColorLight_Solid">#272537</SolidColorBrush>
+    <SolidColorBrush x:Key="MenuButtonColorAverage_Solid">#211e2b</SolidColorBrush>
+    <SolidColorBrush x:Key="MenuButtonColorDark_Solid">#1b1924</SolidColorBrush>
+
+    <!--Other Colors-->
+    <Color x:Key="T">#404040</Color>
+    <Color x:Key="ColorLightBlue">#7dbcde</Color>
+    <Color x:Key="ColorBlue">#51a2d5</Color>
+    <Color x:Key="ColorNavyBlue">#1c70c8</Color>
+    <Color x:Key="ColorDeepBlue">#022f8e</Color>
+
+</ResourceDictionary>

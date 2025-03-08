@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>WinExe</OutputType>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UseWPF>true</UseWPF>
+        <ApplicationIcon>Resources\Icons\analyze.ico</ApplicationIcon>
+        <PackageId>CGA</PackageId>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\Images\close.png" />
+      <Resource Include="Resources\Images\close.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="Resources\Images\minimize.png" />
+      <Resource Include="Resources\Images\minimize.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Resource>
+      <None Remove="Resources\Images\github-logo.png" />
+      <None Remove="Resources\Images\linkedin-logo.png" />
+      <None Remove="Resources\Images\telegram-logo.png" />
+      <None Remove="Resources\Images\file.png" />
+      <None Remove="Resources\Images\folder.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Page Update="MVVM\Views\CGAView.xaml">
+        <Generator>MSBuild:Compile</Generator>
+        <XamlRuntime>Wpf</XamlRuntime>
+        <SubType>Designer</SubType>
+      </Page>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_DeploymentManifestIconFile Remove="Resources\Icons\analyze.ico" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
+      <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Core\" />
+    </ItemGroup>
+</Project>

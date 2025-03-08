@@ -1,0 +1,42 @@
+﻿using CGA.Core.MatrixTransformations;
+
+namespace CGA.Core.Entities;
+
+public class SceneManager
+{
+    public ObjectModel? ObjectModel { get; set; }
+    public CameraModel CameraModel { get; set; }
+    public int CanvasWidth { get; set; }
+    public int CanvasHeight { get; set; }
+
+    public SceneManager(int canvasWidth, int canvasHeight) : this()
+    {
+        CanvasWidth = canvasWidth;
+        CanvasHeight = canvasHeight;
+    }
+    public SceneManager()
+    {
+        CameraModel = new CameraModel();
+    }
+    
+    public void TransformObject()
+    {
+        if(ObjectModel is null)
+            throw new NullReferenceException("Object model is null");
+        
+        var view = Transformations
+            .CreateViewMatrix(CameraModel.EyePosition, CameraModel.TargetPosition, CameraModel.UpVector);
+        
+        var projection = Transformations
+            .CreateProjectionMatrix(CameraModel.Fov, CameraModel.AspectRatio, CameraModel.ZNear, CameraModel.ZFar);
+        
+        var viewport = Transformations
+            .CreateViewportMatrix(CanvasWidth, CanvasHeight, 0.0f, 0.0f);
+        
+        var world = Transformations
+            .CreateTransformMatrix(ObjectModel.Position, ObjectModel.Rotation, ObjectModel.Scale);
+        
+        var transformMatrix = world * view * projection * viewport;
+        ObjectModel.Transform(transformMatrix, CameraModel.ZNear, CameraModel.ZFar);
+    }
+}

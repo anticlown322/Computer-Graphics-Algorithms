@@ -1,0 +1,105 @@
+﻿<Window x:Class="CGA.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:CGA.MVVM.ViewModels"
+        mc:Ignorable="d"
+        WindowState="Maximized"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        WindowStartupLocation="CenterScreen"
+        Name="WndMain">
+
+    <Window.DataContext>
+        <viewModels:MainViewModel />
+    </Window.DataContext>
+
+    <Window.InputBindings>
+        <!--Hotkeys-->
+        <KeyBinding Command="{Binding CloseWindowCommand}"
+                    CommandParameter="{Binding ElementName=WndMain}"
+                    Key="Esc" />
+        <KeyBinding Command="{Binding MinimizeWindowCommand}"
+                    CommandParameter="{Binding ElementName=WndMain}"
+                    Gesture="Ctrl+M" />
+        
+        <!--Model interaction-->
+        <KeyBinding Key="W" 
+                    Command="{Binding KeyPressCommand}" 
+                    CommandParameter="{x:Static Key.W}" />
+        <KeyBinding Key="A" 
+                    Command="{Binding KeyPressCommand}" 
+                    CommandParameter="{x:Static Key.A}" />
+        <KeyBinding Key="S" 
+                    Command="{Binding KeyPressCommand}" 
+                    CommandParameter="{x:Static Key.S}" />
+        <KeyBinding Key="D" 
+                    Command="{Binding KeyPressCommand}" 
+                    CommandParameter="{x:Static Key.D}" />
+    </Window.InputBindings>
+
+    <Border BorderThickness="1"
+            Background="{StaticResource PrimaryColorLight_Solid}">
+
+        <!--Border setup-->
+        <Border.BorderBrush>
+            <LinearGradientBrush StartPoint="0, 0" EndPoint="1, 1">
+                <GradientStop Color="{StaticResource WindowBorderColor1}" Offset="0" />
+                <GradientStop Color="{StaticResource WindowBorderColor2}" Offset="0.5" />
+                <GradientStop Color="{StaticResource WindowBorderColor3}" Offset="1" />
+            </LinearGradientBrush>
+        </Border.BorderBrush>
+
+        <!--Layout-->
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="50" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!--Top Panel-->
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal"
+                        FlowDirection="RightToLeft"
+                        Margin="10 0 10 0">
+
+
+                <Button Command="{Binding CloseWindowCommand}"
+                        CommandParameter="{Binding ElementName=WndMain}"
+                        Style="{StaticResource TopMenuButtonStyle}">
+                    <Button.Content>
+                        <Image Source="{StaticResource CloseWindow}"></Image>
+                    </Button.Content>
+                </Button>
+
+                <Button Command="{Binding MinimizeWindowCommand}"
+                        CommandParameter="{Binding ElementName=WndMain}"
+                        Style="{StaticResource TopMenuButtonStyle}">
+                    <Button.Content>
+                        <Image Source="{StaticResource MinimizeWindow}"></Image>
+                    </Button.Content>
+                </Button>
+
+                <Button Margin="2"
+                        Height="40"
+                        Width="300"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource InViewButtonStyle}"
+                        Content="Select .obj file"
+                        Command="{Binding StartLoadingFileCommand}" />
+            </StackPanel>
+
+            <!--Client window-->
+            <ContentControl x:Name="ClientArea"
+                            Grid.Row="1"
+                            Focusable="True"
+                            Margin="10"
+                            Content="{Binding CurrentView}">
+            </ContentControl>
+        </Grid>
+    </Border>
+</Window>
