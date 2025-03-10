@@ -6,10 +6,7 @@ public class ObjectModel
 {
     #region Vertices
     public List<Vector4> LocalVertices { get; set; } = [];
-
     public Vector4[] GlobalVertices { get; set; } = [];
-    
-    //список массивов индексов из List<Vector4> Vertices
     public List<int[]> Faces { get; set; } = [];
     #endregion
     

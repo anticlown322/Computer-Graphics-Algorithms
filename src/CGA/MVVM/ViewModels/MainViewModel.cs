@@ -5,7 +5,10 @@ namespace CGA.MVVM.ViewModels;
 
 public class MainViewModel : ObservableObject
 {
-    public CanvasViewModel CanvasVm { get; set; }
+    private object _currentView;
+    private CanvasViewModel CanvasVm { get; set; }
+
+    #region Commands
 
     public RelayCommand MinimizeWindowCommand { get; set; }
     public RelayCommand CloseWindowCommand { get; set; }
@@ -13,7 +16,9 @@ public class MainViewModel : ObservableObject
     public RelayCommand KeyPressCommand { get; set; }
     public RelayCommand CanvasViewCommand { get; set; }
 
-    private object _currentView;
+    #endregion
+    
+    #region Public properties for private fields
     public object CurrentView
     {
         get => _currentView;
@@ -23,11 +28,11 @@ public class MainViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
+    #endregion
 
     public MainViewModel()
     {
         CanvasVm = new CanvasViewModel();
-
         CurrentView = CanvasVm; 
         
         MinimizeWindowCommand = new RelayCommand(MinimizeWindow);
@@ -36,8 +41,8 @@ public class MainViewModel : ObservableObject
         CanvasViewCommand = new RelayCommand(obj => CurrentView = CanvasVm );
         KeyPressCommand = new RelayCommand(OnKeyPress);
     }
-    
-    void MinimizeWindow(object parameter)
+
+    private void MinimizeWindow(object parameter)
     {
         if (parameter is Window window)
         {
@@ -45,15 +50,15 @@ public class MainViewModel : ObservableObject
         }
     }
 
-    void CloseWindow(object parameter)
+    private void CloseWindow(object parameter)
     {
         if (parameter is Window window)
         {
             window.Close();
         }
     }
-    
-    void StartLoadingFile(object parameter)
+
+    private void StartLoadingFile(object parameter)
     {
         CurrentView = CanvasVm; 
         CanvasVm.LoadFileCommand.Execute(parameter);

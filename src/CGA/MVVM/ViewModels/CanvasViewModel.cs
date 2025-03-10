@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using CGA.Core;
 using CGA.Core.Entities;
 using CGA.Core.Parser;
 using CGA.Core.Renderer;
@@ -15,8 +14,8 @@ public class CanvasViewModel : ObservableObject
 {
     private string _filePath = string.Empty;
     private WriteableBitmap? _writeableBitmap;
-    private SceneManager _sceneManager = new();
-    private Point _lastMousePos;
+    private SceneManager _sceneManager;
+    private Point _mousePosition;
 
     #region Commands
     public RelayCommand LoadFileCommand { get; }
@@ -49,10 +48,12 @@ public class CanvasViewModel : ObservableObject
 
     public CanvasViewModel()
     {
-        LoadFileCommand = new RelayCommand(LoadFile);
+        LoadFileCommand   = new RelayCommand(LoadFile);
         MouseWheelCommand = new RelayCommand(OnMouseWheel);
-        MouseMoveCommand = new RelayCommand(OnMouseMove);
-        KeyPressCommand = new RelayCommand(OnKeyPress);
+        MouseMoveCommand  = new RelayCommand(OnMouseMove);
+        KeyPressCommand   = new RelayCommand(OnKeyPress);
+        
+        SceneManager = new SceneManager();
     }
 
     void LoadFile(object parameter)
@@ -70,23 +71,9 @@ public class CanvasViewModel : ObservableObject
             MessageBox.Show(ex.Message);
         }
         
-        WriteableBitmap ??= new WriteableBitmap(
-            pixelWidth:  SceneManager.CanvasWidth, 
-            pixelHeight: SceneManager.CanvasHeight, 
-            dpiX:        96, 
-            dpiY:        96, 
-            pixelFormat: PixelFormats.Bgra32, 
-            palette:     null);
-
         SceneManager.ObjectModel = Parser.LoadFromFile(_filePath);
         
-        SceneManager.CameraModel.ChangeEyePosition();
-        SceneManager.TransformObject();
-        WireframeRenderer.RenderModel(
-            objectModel: SceneManager.ObjectModel, 
-            bitmap:      WriteableBitmap, 
-            zNear:       SceneManager.CameraModel.ZNear, 
-            zFar:        SceneManager.CameraModel.ZFar);
+        UpdateCanvas();
     }
     
     private void OnMouseWheel(object parameter)
@@ -104,6 +91,8 @@ public class CanvasViewModel : ObservableObject
         
         if (SceneManager.CameraModel.Radius > SceneManager.CameraModel.ZFar)
             SceneManager.CameraModel.Radius = SceneManager.CameraModel.ZFar;
+        
+        UpdateCanvas();
     }
 
     private void OnMouseMove(object parameter)
@@ -114,8 +103,8 @@ public class CanvasViewModel : ObservableObject
         if (parameter is not MouseEventArgs args) 
             return;
         
-        var currentPos = args.GetPosition(null);
-        var delta = currentPos - _lastMousePos;
+        var currentMousePosition = args.GetPosition(null);
+        var delta = currentMousePosition - _mousePosition;
         
         if (args.LeftButton == MouseButtonState.Pressed)
         {
@@ -132,14 +121,9 @@ public class CanvasViewModel : ObservableObject
                 SceneManager.ObjectModel.Rotation.Z);
         }
         
-        _lastMousePos = currentPos;
-        SceneManager.CameraModel.ChangeEyePosition();
-        SceneManager.TransformObject();
-        WireframeRenderer.RenderModel(
-            objectModel: SceneManager.ObjectModel, 
-            bitmap:      WriteableBitmap, 
-            zNear:       SceneManager.CameraModel.ZNear, 
-            zFar:        SceneManager.CameraModel.ZFar);
+        _mousePosition = currentMousePosition;
+        
+        UpdateCanvas();
     }
 
     private void OnKeyPress(object parameter)
@@ -151,7 +135,6 @@ public class CanvasViewModel : ObservableObject
             return;
 
         const float delta = 0.05f;
-        
         switch (key)
         {
             case Key.W: SceneManager.ObjectModel.Position += new Vector3(0, delta, 0); break;
@@ -160,13 +143,29 @@ public class CanvasViewModel : ObservableObject
             case Key.D: SceneManager.ObjectModel.Position += new Vector3(delta, 0, 0); break;
         }
 
+        UpdateCanvas();
+    }
+
+    private void UpdateCanvas()
+    {
         SceneManager.CameraModel.ChangeEyePosition();
         SceneManager.TransformObject();
         WireframeRenderer.RenderModel(
             objectModel: SceneManager.ObjectModel, 
             bitmap:      WriteableBitmap, 
             zNear:       SceneManager.CameraModel.ZNear, 
-            zFar:        SceneManager.CameraModel.ZFar);
+            zFar:        SceneManager.CameraModel.ZFar,
+            color:       new Vector3(1, 1, 1));
     }
 
+    internal void OnViewLoaded()
+    {
+        WriteableBitmap = new WriteableBitmap(
+            pixelWidth:  SceneManager.CanvasWidth, 
+            pixelHeight: SceneManager.CanvasHeight, 
+            dpiX:        96, 
+            dpiY:        96, 
+            pixelFormat: PixelFormats.Bgra32, 
+            palette:     null);
+    }
 }

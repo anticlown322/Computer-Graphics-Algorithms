@@ -10,7 +10,6 @@
         ResizeMode="NoResize"
         AllowsTransparency="True"
         Background="Transparent"
-        WindowStartupLocation="CenterScreen"
         Name="WndMain">
 
     <Window.DataContext>

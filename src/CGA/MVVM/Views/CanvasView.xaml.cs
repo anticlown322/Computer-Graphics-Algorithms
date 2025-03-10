@@ -13,10 +13,11 @@ public partial class CanvasView : UserControl
     
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        if (DataContext is CanvasViewModel canvasView)
+        if (DataContext is CanvasViewModel canvasViewModel)
         {
-            canvasView.SceneManager.CanvasHeight = (int)CanvasBorder.ActualHeight;
-            canvasView.SceneManager.CanvasWidth = (int)CanvasBorder.ActualWidth;
+            canvasViewModel.SceneManager.CanvasHeight = (int)CanvasBorder.ActualHeight;
+            canvasViewModel.SceneManager.CanvasWidth = (int)CanvasBorder.ActualWidth;
+            canvasViewModel.OnViewLoaded();
         }
     }
 }

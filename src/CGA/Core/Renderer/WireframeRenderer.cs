@@ -8,13 +8,13 @@ namespace CGA.Core.Renderer;
 
 public static class WireframeRenderer
 {
-    public static void RenderModel(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar)
+    public static void RenderModel(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar, Vector3 color)
     {
         if (bitmap is null)
             throw new ArgumentNullException(nameof(bitmap));
 
         ClearBitmap(bitmap, new(0, 0, 0));
-        Draw(objectModel, bitmap, zNear, zFar);
+        Draw(objectModel, bitmap, zNear, zFar, color);
     }
 
     private static unsafe void ClearBitmap(WriteableBitmap bitmap, Vector3 color)
@@ -39,10 +39,8 @@ public static class WireframeRenderer
         }
     }
 
-    private static void Draw(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar)
+    private static void Draw(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar, Vector3 color)
     {
-        Vector3 color = new(1, 0, 1);
-
         bitmap.Lock();
 
         foreach (var face in objectModel.Faces)
@@ -96,7 +94,9 @@ public static class WireframeRenderer
         }
     }
 
-    private static unsafe void DrawBresenhamLine(WriteableBitmap bitmap, Vector2 a, Vector2 b, Vector3 color, 
+    private static unsafe void DrawBresenhamLine(
+        WriteableBitmap bitmap, 
+        Vector2 a, Vector2 b, Vector3 color, 
         int width, int height)
     {
         int x1 = (int)Math.Round(a.X, MidpointRounding.AwayFromZero);
@@ -131,9 +131,10 @@ public static class WireframeRenderer
             int xt = x1 + m00 * x + m01 * y;
             int yt = y1 + m10 * x + m11 * y;
 
+            //if current point is inside screen
             if (xt >= 0 && xt < width && yt >= 0 && yt < height)
             {
-                //SetPixel
+                //Set bitmap pixel
                 IntPtr address = bitmap.BackBuffer + yt * bitmap.BackBufferStride + xt * bitmap.Format.BitsPerPixel / 8;
                 *(int*)address = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
             }

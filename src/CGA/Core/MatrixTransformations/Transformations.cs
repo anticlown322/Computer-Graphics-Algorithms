@@ -4,27 +4,11 @@ namespace CGA.Core.MatrixTransformations;
 
 public static class Transformations
 {
-    public static Matrix4x4 CreateTransformMatrix(
-        float dx, float dy, float dz, 
-        float angle, 
-        Vector3 axis, 
-        float sx, float sy, float sz)
-    {
-        Matrix4x4 translation = Matrix4x4.CreateTranslation(new Vector3(dx, dy, dz));
-        Matrix4x4 rotation = Matrix4x4.CreateFromAxisAngle(axis, angle);
-        Matrix4x4 scale = Matrix4x4.CreateScale(new Vector3(sx, sy, sz));
-        
-        return translation * rotation * scale;
-    }
-    
-    public static Matrix4x4 CreateTransformMatrix(
-        Vector3 objTranslation, 
-        Vector3 objRotation,
-        Vector3 objScale)
+    public static Matrix4x4 CreateTransformMatrix(Vector3 objTranslation, Vector3 objRotation, Vector3 objScale)
     {
         Matrix4x4 translation = Matrix4x4.CreateTranslation(objTranslation);
-        Matrix4x4 rotation = Matrix4x4.CreateFromYawPitchRoll(objRotation.X, objRotation.Y, objRotation.Z); 
-        Matrix4x4 scale = Matrix4x4.CreateScale(objScale);
+        Matrix4x4 rotation    = Matrix4x4.CreateFromYawPitchRoll(objRotation.X, objRotation.Y, objRotation.Z); 
+        Matrix4x4 scale       = Matrix4x4.CreateScale(objScale);
         
         return translation * rotation * scale;
     }
@@ -54,6 +38,7 @@ public static class Transformations
     public static Matrix4x4 CreateProjectionMatrix(float fov, float aspect, float znear, float zfar)
     {
         float tanHalfFov = MathF.Tan(fov / 2);
+        
         float m00 = 1 / (aspect * tanHalfFov);
         float m11 = 1 / tanHalfFov;
         float m22 = zfar / (znear - zfar);

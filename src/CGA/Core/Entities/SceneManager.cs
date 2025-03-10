@@ -5,20 +5,10 @@ namespace CGA.Core.Entities;
 public class SceneManager
 {
     public ObjectModel? ObjectModel { get; set; }
-    public CameraModel CameraModel { get; set; }
+    public CameraModel CameraModel { get; set; } = new();
     public int CanvasWidth { get; set; }
     public int CanvasHeight { get; set; }
 
-    public SceneManager(int canvasWidth, int canvasHeight) : this()
-    {
-        CanvasWidth = canvasWidth;
-        CanvasHeight = canvasHeight;
-    }
-    public SceneManager()
-    {
-        CameraModel = new CameraModel();
-    }
-    
     public void TransformObject()
     {
         if(ObjectModel is null)
