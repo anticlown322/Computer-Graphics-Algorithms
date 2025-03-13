@@ -7,7 +7,7 @@ public static class Transformations
     public static Matrix4x4 CreateTransformMatrix(Vector3 objTranslation, Vector3 objRotation, Vector3 objScale)
     {
         Matrix4x4 translation = Matrix4x4.CreateTranslation(objTranslation);
-        Matrix4x4 rotation    = Matrix4x4.CreateFromYawPitchRoll(objRotation.X, objRotation.Y, objRotation.Z); 
+        Matrix4x4 rotation    = Matrix4x4.CreateFromYawPitchRoll(objRotation.Y, objRotation.X, objRotation.Z); 
         Matrix4x4 scale       = Matrix4x4.CreateScale(objScale);
         
         return translation * rotation * scale;

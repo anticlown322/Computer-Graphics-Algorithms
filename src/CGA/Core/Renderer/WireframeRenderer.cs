@@ -28,7 +28,7 @@ public static class WireframeRenderer
         {
             pBackBuffer[i] = intColor;
         }
-        
+
         try
         {
             bitmap.AddDirtyRect(new Int32Rect(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
@@ -41,13 +41,16 @@ public static class WireframeRenderer
 
     private static void Draw(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar, Vector3 color)
     {
-        bitmap.Lock();
+        int pixelWidth = bitmap.PixelWidth;
+        int pixelHeight = bitmap.PixelHeight;
 
-        foreach (var face in objectModel.Faces)
+        int[] buffer = new int[pixelWidth * pixelHeight];
+
+        Parallel.ForEach(objectModel.Faces, face =>
         {
             int count = face.Length;
             if (count < 2)
-                continue;
+                return;
 
             for (int i = 0; i < count; i++)
             {
@@ -66,27 +69,41 @@ public static class WireframeRenderer
                 int y1 = (int)Math.Round(objectModel.GlobalVertices[index2].Y);
                 float z1 = objectModel.GlobalVertices[index2].Z;
 
-                //is both vertices outside screen
-                if ((x0 >= bitmap.PixelWidth && x1 >= bitmap.PixelWidth)
+
+                if ((x0 >= pixelWidth && x1 >= pixelWidth)
                     || (x0 < 0 && x1 < 0)
-                    || (y0 >= bitmap.PixelHeight && y1 >= bitmap.PixelHeight)
+                    || (y0 >= pixelHeight && y1 >= pixelHeight)
                     || (y0 < 0 && y1 < 0))
                     continue;
 
-                //is outside camera vision
-                if (z0 < zNear
-                    || z1 < zNear
-                    || z0 > zFar
-                    || z1 > zFar)
+                if (z0 < zNear || z1 < zNear || z0 > zFar || z1 > zFar)
                     continue;
 
-                DrawBresenhamLine(bitmap, new(x0, y0), new(x1, y1), color, bitmap.PixelWidth, bitmap.PixelHeight);
+  
+                DrawBresenhamLine(buffer, new(x0, y0), new(x1, y1), color, pixelWidth, pixelHeight);
             }
-        }
+        });
 
+
+        bitmap.Lock();
         try
         {
-            bitmap.AddDirtyRect(new(0, 0, bitmap.PixelWidth, bitmap.PixelHeight));
+            unsafe
+            {
+
+                IntPtr pBackBuffer = bitmap.BackBuffer;
+                for (int y = 0; y < pixelHeight; y++)
+                {
+                    for (int x = 0; x < pixelWidth; x++)
+                    {
+                        int index = y * pixelWidth + x;
+                        *(int*)(pBackBuffer + y * bitmap.BackBufferStride + x * 4) = buffer[index];
+                    }
+                }
+            }
+
+
+            bitmap.AddDirtyRect(new Int32Rect(0, 0, pixelWidth, pixelHeight));
         }
         finally
         {
@@ -95,8 +112,8 @@ public static class WireframeRenderer
     }
 
     private static unsafe void DrawBresenhamLine(
-        WriteableBitmap bitmap, 
-        Vector2 a, Vector2 b, Vector3 color, 
+        int[] buffer, 
+        Vector2 a, Vector2 b, Vector3 color,
         int width, int height)
     {
         int x1 = (int)Math.Round(a.X, MidpointRounding.AwayFromZero);
@@ -107,14 +124,14 @@ public static class WireframeRenderer
         int dx = x2 - x1;
         int dy = y2 - y1;
 
-        int w = int.Abs(dx);
-        int h = int.Abs(dy);
-        int l = int.Max(w, h);
+        int w = Math.Abs(dx);
+        int h = Math.Abs(dy);
+        int l = Math.Max(w, h);
 
-        int m00 = int.Sign(dx);
+        int m00 = Math.Sign(dx);
         int m01 = 0;
         int m10 = 0;
-        int m11 = int.Sign(dy);
+        int m11 = Math.Sign(dy);
         if (w < h)
         {
             (m00, m01) = (m01, m00);
@@ -124,19 +141,18 @@ public static class WireframeRenderer
         int y = 0;
         int e = 0;
         int eDec = 2 * l;
-        int eInc = 2 * int.Min(w, h);
+        int eInc = 2 * Math.Min(w, h);
 
         for (int x = 0; x <= l; x++)
         {
             int xt = x1 + m00 * x + m01 * y;
             int yt = y1 + m10 * x + m11 * y;
 
-            //if current point is inside screen
+
             if (xt >= 0 && xt < width && yt >= 0 && yt < height)
             {
-                //Set bitmap pixel
-                IntPtr address = bitmap.BackBuffer + yt * bitmap.BackBufferStride + xt * bitmap.Format.BitsPerPixel / 8;
-                *(int*)address = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
+                int index = yt * width + xt;
+                buffer[index] = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
             }
 
             if ((e += eInc) > 1)
