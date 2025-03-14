@@ -15,8 +15,8 @@ public partial class CanvasView : UserControl
     {
         if (DataContext is CanvasViewModel canvasViewModel)
         {
-            canvasViewModel.SceneManager.CanvasHeight = (int)CanvasBorder.ActualHeight;
-            canvasViewModel.SceneManager.CanvasWidth = (int)CanvasBorder.ActualWidth;
+            canvasViewModel.SceneManager.CanvasHeight = (int)CanvasGrid.ActualHeight;
+            canvasViewModel.SceneManager.CanvasWidth = (int)CanvasGrid.ActualWidth;
             canvasViewModel.OnViewLoaded();
         }
     }

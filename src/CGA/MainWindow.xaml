@@ -96,7 +96,7 @@
             <ContentControl x:Name="ClientArea"
                             Grid.Row="1"
                             Focusable="True"
-                            Margin="10"
+                            Margin="5"
                             Content="{Binding CurrentView}">
             </ContentControl>
         </Grid>

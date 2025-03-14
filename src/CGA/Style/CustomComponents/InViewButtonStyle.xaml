@@ -5,7 +5,7 @@
         
         <Style.Setters>
             <Setter Property="Background" Value="{StaticResource PrimaryColorDark_Solid}"/>
-            <Setter Property="Foreground" Value="{StaticResource WindowBorderColor1_Solid}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimaryColor_Solid}"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Heavy"/>
             
@@ -25,7 +25,7 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource SecondaryColor_Solid}"/>
-                <Setter Property="Foreground" Value="{StaticResource WindowBorderColor3_Solid}"/>
+                <Setter Property="Foreground" Value="{StaticResource TextSecondaryColor_Solid}"/>
             </Trigger>
         </Style.Triggers>
     </Style>

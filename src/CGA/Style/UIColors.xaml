@@ -25,4 +25,10 @@
     <SolidColorBrush x:Key="MenuButtonColorLight_Solid">#272537</SolidColorBrush>
     <SolidColorBrush x:Key="MenuButtonColorAverage_Solid">#211e2b</SolidColorBrush>
     <SolidColorBrush x:Key="MenuButtonColorDark_Solid">#1b1924</SolidColorBrush>
+    
+    <!--Text Colors-->
+    <Color x:Key="TextPrimaryColor">#6D2FFF</Color>
+    <SolidColorBrush x:Key="TextPrimaryColor_Solid">#6D2FFF</SolidColorBrush>
+    <Color x:Key="TextSecondaryColor">#836EFB</Color>
+    <SolidColorBrush x:Key="TextSecondaryColor_Solid">#836EFB</SolidColorBrush>
 </ResourceDictionary>

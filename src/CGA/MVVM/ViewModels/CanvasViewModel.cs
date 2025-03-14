@@ -12,19 +12,14 @@ namespace CGA.MVVM.ViewModels;
 
 public class CanvasViewModel : ObservableObject
 {
-    private string _filePath = string.Empty;
+    private string           _filePath = string.Empty;
     private WriteableBitmap? _writeableBitmap;
-    private SceneManager _sceneManager;
-    private Point _mousePosition;
+    private SceneManager     _sceneManager;
+    private Point            _mousePosition;
+    private RendererChoices  _selectedOption;
 
-    #region Commands
-    public RelayCommand LoadFileCommand { get; }
-    public RelayCommand MouseWheelCommand { get; }
-    public RelayCommand MouseMoveCommand { get; }
-    public RelayCommand KeyPressCommand { get; }
-    #endregion Commands
-    
     #region Public properties for private fields
+
     public SceneManager SceneManager
     {
         get => _sceneManager;
@@ -44,7 +39,26 @@ public class CanvasViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
+    public RendererChoices SelectedOption
+    {
+        get => _selectedOption;
+        set
+        {
+            _selectedOption = value;
+            OnPropertyChanged();
+        }
+    }
+    
     #endregion
+    
+    #region Commands
+    
+    public RelayCommand LoadFileCommand { get; }
+    public RelayCommand MouseWheelCommand { get; }
+    public RelayCommand MouseMoveCommand { get; }
+    public RelayCommand KeyPressCommand { get; }
+    
+    #endregion Commands
 
     public CanvasViewModel()
     {
@@ -55,25 +69,16 @@ public class CanvasViewModel : ObservableObject
         
         SceneManager = new SceneManager();
     }
-
-    void LoadFile(object parameter)
+    
+    internal void OnViewLoaded()
     {
-        try
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
-            {
-                _filePath = openFileDialog.FileName;
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message);
-        }
-        
-        SceneManager.ObjectModel = Parser.LoadFromFile(_filePath);
-        
-        UpdateCanvas();
+        WriteableBitmap = new WriteableBitmap(
+            pixelWidth:  SceneManager.CanvasWidth, 
+            pixelHeight: SceneManager.CanvasHeight, 
+            dpiX:        96, 
+            dpiY:        96, 
+            pixelFormat: PixelFormats.Bgra32, 
+            palette:     null);
     }
     
     private void OnMouseWheel(object parameter)
@@ -145,27 +150,57 @@ public class CanvasViewModel : ObservableObject
 
         UpdateCanvas();
     }
-
+    
+    private void LoadFile(object parameter)
+    {
+        try
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            if (openFileDialog.ShowDialog() == true)
+            {
+                _filePath = openFileDialog.FileName;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message);
+        }
+        
+        SceneManager.ObjectModel = Parser.LoadFromFile(_filePath);
+        
+        UpdateCanvas();
+    }
+    
     private void UpdateCanvas()
     {
         SceneManager.CameraModel.ChangeEyePosition();
         SceneManager.TransformObject();
-        WireframeRenderer.RenderModel(
-            objectModel: SceneManager.ObjectModel, 
-            bitmap:      WriteableBitmap, 
-            zNear:       SceneManager.CameraModel.ZNear, 
-            zFar:        SceneManager.CameraModel.ZFar,
-            color:       new Vector3(1, 1, 1));
-    }
 
-    internal void OnViewLoaded()
-    {
-        WriteableBitmap = new WriteableBitmap(
-            pixelWidth:  SceneManager.CanvasWidth, 
-            pixelHeight: SceneManager.CanvasHeight, 
-            dpiX:        96, 
-            dpiY:        96, 
-            pixelFormat: PixelFormats.Bgra32, 
-            palette:     null);
+        switch (SelectedOption)
+        {
+            case RendererChoices.Wireframe:
+            {
+                WireframeRenderer.RenderModel(
+                    objectModel: SceneManager.ObjectModel, 
+                    bitmap:      WriteableBitmap, 
+                    zNear:       SceneManager.CameraModel.ZNear, 
+                    zFar:        SceneManager.CameraModel.ZFar,
+                    color:       new Vector3(1, 1, 1));
+                
+                break;
+            }
+                
+            case RendererChoices.Rasterized:
+            {
+                RasterRenderer.RenderModel(
+                    objectModel: SceneManager.ObjectModel, 
+                    bitmap:      WriteableBitmap, 
+                    color:       new Vector3(1, 1, 1));
+                break;
+            }
+            
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 }

@@ -39,12 +39,15 @@ public static class WireframeRenderer
         }
     }
 
-    private static void Draw(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar, Vector3 color)
+    private static unsafe void Draw(ObjectModel objectModel, WriteableBitmap bitmap, float zNear, float zFar, Vector3 color)
     {
         int pixelWidth = bitmap.PixelWidth;
         int pixelHeight = bitmap.PixelHeight;
+        int colorBgra = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
 
-        int[] buffer = new int[pixelWidth * pixelHeight];
+        bitmap.Lock();
+        
+        int* buffer = (int*)bitmap.BackBuffer; 
 
         Parallel.ForEach(objectModel.Faces, face =>
         {
@@ -61,48 +64,31 @@ public static class WireframeRenderer
                       index2 >= 0 && index2 < objectModel.GlobalVertices.Length))
                     continue;
 
-                int x0 = (int)Math.Round(objectModel.GlobalVertices[index1].X);
-                int y0 = (int)Math.Round(objectModel.GlobalVertices[index1].Y);
+                int x0   = (int)Math.Round(objectModel.GlobalVertices[index1].X);
+                int y0   = (int)Math.Round(objectModel.GlobalVertices[index1].Y);
                 float z0 = objectModel.GlobalVertices[index1].Z;
 
-                int x1 = (int)Math.Round(objectModel.GlobalVertices[index2].X);
-                int y1 = (int)Math.Round(objectModel.GlobalVertices[index2].Y);
+                int x1   = (int)Math.Round(objectModel.GlobalVertices[index2].X);
+                int y1   = (int)Math.Round(objectModel.GlobalVertices[index2].Y);
                 float z1 = objectModel.GlobalVertices[index2].Z;
 
 
-                if ((x0 >= pixelWidth && x1 >= pixelWidth)
-                    || (x0 < 0 && x1 < 0)
-                    || (y0 >= pixelHeight && y1 >= pixelHeight)
-                    || (y0 < 0 && y1 < 0))
+                if ((x0 >= pixelWidth && x1 >= pixelWidth) || 
+                    (x0 < 0 && x1 < 0) || 
+                    (y0 >= pixelHeight && y1 >= pixelHeight) || 
+                    (y0 < 0 && y1 < 0))
                     continue;
 
-                if (z0 < zNear || z1 < zNear || z0 > zFar || z1 > zFar)
+                if (z0 < zNear || z1 < zNear || 
+                    z0 > zFar || z1 > zFar)
                     continue;
-
-  
-                DrawBresenhamLine(buffer, new(x0, y0), new(x1, y1), color, pixelWidth, pixelHeight);
+                
+                DrawBresenhamLine(buffer, new(x0, y0), new(x1, y1), pixelWidth, pixelHeight, colorBgra);
             }
         });
-
-
-        bitmap.Lock();
+        
         try
         {
-            unsafe
-            {
-
-                IntPtr pBackBuffer = bitmap.BackBuffer;
-                for (int y = 0; y < pixelHeight; y++)
-                {
-                    for (int x = 0; x < pixelWidth; x++)
-                    {
-                        int index = y * pixelWidth + x;
-                        *(int*)(pBackBuffer + y * bitmap.BackBufferStride + x * 4) = buffer[index];
-                    }
-                }
-            }
-
-
             bitmap.AddDirtyRect(new Int32Rect(0, 0, pixelWidth, pixelHeight));
         }
         finally
@@ -112,9 +98,10 @@ public static class WireframeRenderer
     }
 
     private static unsafe void DrawBresenhamLine(
-        int[] buffer, 
-        Vector2 a, Vector2 b, Vector3 color,
-        int width, int height)
+        int* buffer, 
+        Vector2 a, Vector2 b,
+        int width, int height,
+        int colorBgra)
     {
         int x1 = (int)Math.Round(a.X, MidpointRounding.AwayFromZero);
         int y1 = (int)Math.Round(a.Y, MidpointRounding.AwayFromZero);
@@ -147,12 +134,11 @@ public static class WireframeRenderer
         {
             int xt = x1 + m00 * x + m01 * y;
             int yt = y1 + m10 * x + m11 * y;
-
-
+            
             if (xt >= 0 && xt < width && yt >= 0 && yt < height)
             {
                 int index = yt * width + xt;
-                buffer[index] = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
+                buffer[index] = colorBgra;
             }
 
             if ((e += eInc) > 1)

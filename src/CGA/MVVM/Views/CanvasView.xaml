@@ -5,16 +5,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:CGA.MVVM.ViewModels"
              xmlns:b="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              d:DataContext="{d:DesignInstance Type=viewModels:CanvasViewModel}"
              mc:Ignorable="d"
              d:DesignHeight="*"
              d:DesignWidth="*"
              Loaded="OnLoaded">
-    <Border x:Name="CanvasBorder"
-            Background="Transparent">
-        <Image x:Name="CanvasImage"
+    <Grid x:Name="CanvasGrid">
+        
+        <!-- Grid setup -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="300"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- Layout -->
+        <Image Grid.Column="0"
+               x:Name="CanvasImage"
                SnapsToDevicePixels="True"
-               Stretch="Uniform"
+               Stretch="Fill"
                Source="{Binding WriteableBitmap}">
             <b:Interaction.Triggers>
                 <b:EventTrigger EventName="KeyDown">
@@ -33,5 +45,43 @@
                 </b:EventTrigger>
             </b:Interaction.Triggers>
         </Image>
-    </Border>
+
+        <Border Grid.Column="1"
+                Background="{StaticResource SecondaryColor_Solid}"
+                Margin="5 0 0 0"
+                Padding="5"
+                CornerRadius="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="50"/>
+                    <RowDefinition Height="50"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Row="0"
+                           Grid.Column="0"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           FontSize="20"
+                           Foreground="{StaticResource TextSecondaryColor_Solid}">
+                    Render Mode: 
+                </TextBlock>
+                
+                <ComboBox Grid.Row="0"
+                          Grid.Column="1"
+                          MaxHeight="25"
+                          MaxWidth="125" 
+                          FontSize="16"
+                          FontWeight="Bold"
+                          HorizontalContentAlignment="Center"
+                          VerticalContentAlignment="Center"
+                          ItemsSource="{Binding Source={StaticResource RendererChoicesProvider}}"
+                          SelectedItem="{Binding SelectedOption, Mode=TwoWay}"
+                          DisplayMemberPath="."/>
+            </Grid>
+        </Border>
+    </Grid>
 </UserControl>
