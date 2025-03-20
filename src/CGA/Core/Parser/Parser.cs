@@ -31,7 +31,7 @@ public static class Parser
             }
         }
 
-        model.GlobalVertices = new Vector4[model.LocalVertices.Count];
+        model.ProjectionVertices = new Vector4[model.LocalVertices.Count];
 
         return model;
     }
@@ -67,6 +67,7 @@ public static class Parser
             faceVertices[i - 1] = int.Parse(vertexData[0]);
         }
 
-        model.Faces.Add(faceVertices);
+
+        model.Faces.Add(new Face(faceVertices));
     }
 }

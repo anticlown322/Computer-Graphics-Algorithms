@@ -51,26 +51,26 @@ public static class WireframeRenderer
 
         Parallel.ForEach(objectModel.Faces, face =>
         {
-            int count = face.Length;
+            int count = face.vertexIndexes.Length;
             if (count < 2)
                 return;
 
             for (int i = 0; i < count; i++)
             {
-                int index1 = face[i] - 1;
-                int index2 = face[(i + 1) % count] - 1;
+                int index1 = face.vertexIndexes[i] - 1;
+                int index2 = face.vertexIndexes[(i + 1) % count] - 1;
 
-                if (!(index1 >= 0 && index1 < objectModel.GlobalVertices.Length &&
-                      index2 >= 0 && index2 < objectModel.GlobalVertices.Length))
+                if (!(index1 >= 0 && index1 < objectModel.ProjectionVertices.Length &&
+                      index2 >= 0 && index2 < objectModel.ProjectionVertices.Length))
                     continue;
 
-                int x0   = (int)Math.Round(objectModel.GlobalVertices[index1].X);
-                int y0   = (int)Math.Round(objectModel.GlobalVertices[index1].Y);
-                float z0 = objectModel.GlobalVertices[index1].Z;
+                int x0   = (int)Math.Round(objectModel.ProjectionVertices[index1].X);
+                int y0   = (int)Math.Round(objectModel.ProjectionVertices[index1].Y);
+                float z0 = objectModel.ProjectionVertices[index1].Z;
 
-                int x1   = (int)Math.Round(objectModel.GlobalVertices[index2].X);
-                int y1   = (int)Math.Round(objectModel.GlobalVertices[index2].Y);
-                float z1 = objectModel.GlobalVertices[index2].Z;
+                int x1   = (int)Math.Round(objectModel.ProjectionVertices[index2].X);
+                int y1   = (int)Math.Round(objectModel.ProjectionVertices[index2].Y);
+                float z1 = objectModel.ProjectionVertices[index2].Z;
 
 
                 if ((x0 >= pixelWidth && x1 >= pixelWidth) || 

@@ -2,21 +2,24 @@
 using System.Windows;
 using System.Windows.Media.Imaging;
 using CGA.Core.Entities;
+using static System.Windows.Forms.DataFormats;
 
 namespace CGA.Core.Renderer;
 
 public static class RasterRenderer
 {
     private static float[,]? _zBuffer;
+
     
-    public static void RenderModel(ObjectModel objectModel, WriteableBitmap bitmap, Vector3 color)
+    
+    public static void RenderModel(ObjectModel objectModel, WriteableBitmap bitmap, Vector3 color, Vector3 eyePos)
     {
         if (bitmap is null)
             throw new ArgumentNullException(nameof(bitmap));
 
         ClearBitmap(bitmap, new(0, 0, 0));
         ClearZBuffer(bitmap.PixelWidth, bitmap.PixelHeight);
-        Draw(objectModel, bitmap, color);
+        Draw(objectModel, bitmap, color, eyePos);
     }
     
     private static unsafe void ClearBitmap(WriteableBitmap bitmap, Vector3 color)
@@ -54,11 +57,11 @@ public static class RasterRenderer
         }
     }
 
-    private static unsafe void Draw(ObjectModel objectModel, WriteableBitmap bitmap, Vector3 color)
+    private static unsafe void Draw(ObjectModel objectModel, WriteableBitmap bitmap, Vector3 color, Vector3 eyePos)
     {
         int width = bitmap.PixelWidth;
         int height = bitmap.PixelHeight;
-        int colorBgra = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
+        
 
         bitmap.Lock();
         
@@ -66,31 +69,48 @@ public static class RasterRenderer
 
         Parallel.ForEach(objectModel.Faces, face =>
         {
-            int count = face.Length;
+            int count = face.vertexIndexes.Length;
             if (count < 3)
                 return;
 
+            Vector3 lightDirection = new Vector3(0, 0.5f, 1);
+
+            Vector3 baseColor = new Vector3(1, 0, 0);
+            double strength = MathF.Max(Vector3.Dot(face.vertexNormal, -lightDirection), 0);
+
+
+            int r = (int)Math.Round(strength * baseColor.X * 255);
+            int g = (int)Math.Round(strength * baseColor.Y * 255);
+            int b = (int)Math.Round(strength * baseColor.Z * 255); 
+            r = Math.Clamp(r, 0, 255);
+            g = Math.Clamp(g, 0, 255);
+            b = Math.Clamp(b, 0, 255);
+            int a = 255; 
+            int shadedColorBgra = (a << 24) | (r << 16) | (g << 8) | b;
+
             for (int i = 1; i < count - 1; i++)
             {
-                int idx1 = face[0] - 1;
-                int idx2 = face[i] - 1;
-                int idx3 = face[i + 1] - 1;
+                int idx1 = face.vertexIndexes[0] - 1;
+                int idx2 = face.vertexIndexes[i] - 1;
+                int idx3 = face.vertexIndexes[i + 1] - 1;
                 
-                Vector2 screenVertex1 = new Vector2(objectModel.GlobalVertices[idx1].X, objectModel.GlobalVertices[idx1].Y);
-                Vector2 screenVertex2 = new Vector2(objectModel.GlobalVertices[idx2].X, objectModel.GlobalVertices[idx2].Y);
-                Vector2 screenVertex3 = new Vector2(objectModel.GlobalVertices[idx3].X, objectModel.GlobalVertices[idx3].Y);
+                Vector2 screenVertex1 = new Vector2(objectModel.ProjectionVertices[idx1].X, objectModel.ProjectionVertices[idx1].Y);
+                Vector2 screenVertex2 = new Vector2(objectModel.ProjectionVertices[idx2].X, objectModel.ProjectionVertices[idx2].Y);
+                Vector2 screenVertex3 = new Vector2(objectModel.ProjectionVertices[idx3].X, objectModel.ProjectionVertices[idx3].Y);
+
+
 
                 RasterWithScanningLine(
                     vertex1:   screenVertex1,
                     vertex2:   screenVertex2,
                     vertex3:   screenVertex3,
-                    z1:        objectModel.GlobalVertices[idx1].Z,
-                    z2:        objectModel.GlobalVertices[idx2].Z,
-                    z3:        objectModel.GlobalVertices[idx3].Z,
-                    colorBgra: colorBgra,
+                    z1:        objectModel.ProjectionVertices[idx1].Z,
+                    z2:        objectModel.ProjectionVertices[idx2].Z,
+                    z3:        objectModel.ProjectionVertices[idx3].Z,
                     height:    height,
                     width:     width,
-                    buffer:    buffer);
+                    buffer:    buffer,
+                    shadedColorBgra);
             }
         });
             
@@ -106,9 +126,8 @@ public static class RasterRenderer
 
     private static unsafe void RasterWithScanningLine(
         Vector2 vertex1, Vector2 vertex2, Vector2 vertex3, 
-        float z1, float z2, float z3,
-        int colorBgra, int height, int width, 
-        int* buffer)
+        float z1, float z2, float z3, int height, int width, 
+        int* buffer, int shadedColorBgra)
     {
         // sotring vertices
         if (vertex1.Y > vertex3.Y)
@@ -141,6 +160,9 @@ public static class RasterRenderer
         int top = Math.Max(0, (int)Math.Ceiling(vertex1.Y));
         int bottom = Math.Min(height, (int)Math.Ceiling(vertex3.Y));
 
+
+
+
         // drawing
         for (int y = top; y < bottom; y++)
         {
@@ -171,7 +193,7 @@ public static class RasterRenderer
                 int index = y * width + x;
                 if (z < _zBuffer[y, x])
                 {
-                    buffer[index] = colorBgra;
+                    buffer[index] = shadedColorBgra;
                     _zBuffer[y, x] = z; 
                 }
             }

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using CGA.Core.Entities;
 using CGA.Core.Parser;
 using CGA.Core.Renderer;
@@ -192,10 +193,11 @@ public class CanvasViewModel : ObservableObject
                 
             case RendererChoices.Rasterized:
             {
-                RasterRenderer.RenderModel(
-                    objectModel: SceneManager.ObjectModel, 
-                    bitmap:      WriteableBitmap, 
-                    color:       new Vector3(1, 1, 1));
+                    RasterRenderer.RenderModel(
+                        objectModel: SceneManager.ObjectModel,
+                        bitmap: WriteableBitmap,
+                        color: new Vector3(1, 1, 1),
+                        eyePos: SceneManager.CameraModel.EyePosition);
                 break;
             }
             
