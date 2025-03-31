@@ -188,7 +188,7 @@ public static class RasterRenderer
             for (int x = left; x < right; x++)
             {
                 float t = (x - aPoint.X) / (bPoint.X - aPoint.X);
-                float z = zA + t * (zB - zA); // depth interpolation
+                float z = zA + t * (zB - zA); 
                 
                 int index = y * width + x;
                 if (z < _zBuffer[y, x])
