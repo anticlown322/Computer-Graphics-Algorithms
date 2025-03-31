@@ -9,8 +9,6 @@ namespace CGA.Core.Renderer;
 public static class RasterRenderer
 {
     private static float[,]? _zBuffer;
-
-    
     
     public static void RenderModel(ObjectModel objectModel, WriteableBitmap bitmap, Vector3 color, Vector3 eyePos)
     {
@@ -61,7 +59,6 @@ public static class RasterRenderer
     {
         int width = bitmap.PixelWidth;
         int height = bitmap.PixelHeight;
-        
 
         bitmap.Lock();
         
@@ -73,11 +70,24 @@ public static class RasterRenderer
             if (count < 3)
                 return;
 
-            Vector3 lightDirection = new Vector3(0, 0.5f, 1);
+            // отбраковка
+            int idx               = face.vertexIndexes[0] - 1;
+            Vector4 vertex        = objectModel.GlobalVertices[idx];
+            Vector3 vertexPos     = new Vector3(vertex.X, vertex.Y, vertex.Z);
+            Vector3 viewDirection = eyePos - vertexPos;
+                
+            if (Vector3.Dot(face.vertexNormal, viewDirection ) < 0)
+                return;
 
+            // освещение
+            if (Vector3.Dot(face.vertexNormal, Vector3.Normalize(eyePos)) > 0)
+            {
+                face.vertexNormal = -face.vertexNormal;
+            }
+
+            Vector3 lightDirection = new Vector3(0, 0.5f, 1);
             Vector3 baseColor = new Vector3(1, 0, 0);
             double strength = MathF.Max(Vector3.Dot(face.vertexNormal, -lightDirection), 0);
-
 
             int r = (int)Math.Round(strength * baseColor.X * 255);
             int g = (int)Math.Round(strength * baseColor.Y * 255);
@@ -88,6 +98,7 @@ public static class RasterRenderer
             int a = 255; 
             int shadedColorBgra = (a << 24) | (r << 16) | (g << 8) | b;
 
+            // отрисовка
             for (int i = 1; i < count - 1; i++)
             {
                 int idx1 = face.vertexIndexes[0] - 1;
@@ -97,8 +108,6 @@ public static class RasterRenderer
                 Vector2 screenVertex1 = new Vector2(objectModel.ProjectionVertices[idx1].X, objectModel.ProjectionVertices[idx1].Y);
                 Vector2 screenVertex2 = new Vector2(objectModel.ProjectionVertices[idx2].X, objectModel.ProjectionVertices[idx2].Y);
                 Vector2 screenVertex3 = new Vector2(objectModel.ProjectionVertices[idx3].X, objectModel.ProjectionVertices[idx3].Y);
-
-
 
                 RasterWithScanningLine(
                     vertex1:   screenVertex1,
@@ -159,9 +168,6 @@ public static class RasterRenderer
         
         int top = Math.Max(0, (int)Math.Ceiling(vertex1.Y));
         int bottom = Math.Min(height, (int)Math.Ceiling(vertex3.Y));
-
-
-
 
         // drawing
         for (int y = top; y < bottom; y++)

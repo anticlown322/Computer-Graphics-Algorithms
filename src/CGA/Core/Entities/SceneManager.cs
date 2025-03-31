@@ -30,12 +30,11 @@ public class SceneManager
 
         var world = Transformations
             .CreateTransformMatrix(ObjectModel.Position, ObjectModel.Rotation, ObjectModel.Scale);
+        
+        ObjectModel.CalcGlobalVertices(world); 
+        ObjectModel.CalcNormals(world);
 
-        var transformMatrix = world * view;
-
-        ObjectModel.calcNormals(transformMatrix, CameraModel.EyePosition);
-
-        transformMatrix = world * view * projection * viewport;
+        var transformMatrix = world * view * projection * viewport;
         ObjectModel.Transform(transformMatrix, CameraModel.ZNear, CameraModel.ZFar);
         
     }
