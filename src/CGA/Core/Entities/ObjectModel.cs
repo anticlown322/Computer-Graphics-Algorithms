@@ -12,6 +12,8 @@ public class ObjectModel
     public Vector4[] GlobalVertices { get; set; } = [];
     public Vector4[] ProjectionVertices { get; set; } = [];
     public List<Face> Faces { get; set; } = [];
+    public List<Vector3> Normals { get; set; } = []; 
+
 
     #endregion
 

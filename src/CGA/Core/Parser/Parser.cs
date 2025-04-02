@@ -24,17 +24,40 @@ public static class Parser
                 case "v":
                     ParseVertex(line, model);
                     break;
-                    
+
+                case "vn":
+                    ParseNormal(line, model);
+                    break;
+
                 case "f":
                     ParseFace(line, model);
                     break;
             }
         }
 
+        if (model.Faces.Any(f => f.vertexNormal == Vector3.Zero))
+        {
+            model.CalcNormals(Matrix4x4.Identity);
+        }
+
         model.GlobalVertices = new Vector4[model.LocalVertices.Count];
         model.ProjectionVertices = new Vector4[model.LocalVertices.Count];
 
         return model;
+    }
+
+    private static void ParseNormal(in string line, in ObjectModel model)
+    {
+        var normalParts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        var normal = new Vector3(
+            float.Parse(normalParts[1], System.Globalization.CultureInfo.InvariantCulture),
+            float.Parse(normalParts[2], System.Globalization.CultureInfo.InvariantCulture),
+            float.Parse(normalParts[3], System.Globalization.CultureInfo.InvariantCulture)
+            
+        );
+
+        model.Normals.Add(Vector3.Normalize(normal)); // Сохраняем нормализованную нормаль
     }
 
     private static void ParseVertex(in string line, in ObjectModel model)
@@ -54,21 +77,37 @@ public static class Parser
         model.LocalVertices.Add(vertex);
     }
     
-    private static void ParseFace(in string line, in ObjectModel model)
+private static void ParseFace(in string line, in ObjectModel model)
+{
+    var faceParts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+    var faceVertices = new int[faceParts.Length - 1];
+    var faceNormals = new int[faceParts.Length - 1]; // Для хранения индексов нормалей
+    
+    bool hasNormals = false;
+
+    for (int i = 1; i < faceParts.Length; i++)
     {
-        var faceParts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        //массив для хранения индексов вершин грани
-        var faceVertices = new int[faceParts.Length - 1]; // parts[0] - это f, поэтому вычитаем 1
-
-        for (int i = 1; i < faceParts.Length; i++) // с 1, так как parts[0] - это f
+        var vertexData = faceParts[i].Split('/');
+        
+        // Индекс вершины (обязательно есть)
+        faceVertices[i - 1] = int.Parse(vertexData[0]);
+        
+        // Индекс нормали (может отсутствовать)
+        if (vertexData.Length > 2 && !string.IsNullOrEmpty(vertexData[2]))
         {
-            // деление вершины на компоненты (vertex/texture/normal)
-            var vertexData = faceParts[i].Split('/');
-            faceVertices[i - 1] = int.Parse(vertexData[0]);
+            faceNormals[i - 1] = int.Parse(vertexData[2]);
+            hasNormals = true;
         }
-
-
-        model.Faces.Add(new Face(faceVertices));
     }
+
+    var face = new Face(faceVertices);
+    
+    // Если в грани указаны нормали, сохраняем их индексы
+    if (hasNormals)
+    {
+        face.normalIndexes = faceNormals;
+    }
+    
+    model.Faces.Add(face);
+}
 }

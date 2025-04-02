@@ -8,8 +8,10 @@ public record Face
     {
         this.vertexIndexes = vertexIndexes;
         vertexNormal = new Vector3();
-    }
 
+    }
+    public int[]? normalIndexes; 
     public int[] vertexIndexes;
     public Vector3 vertexNormal;
+
 }
