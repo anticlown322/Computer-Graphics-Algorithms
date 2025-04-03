@@ -7,6 +7,7 @@ using System.Windows.Media.Media3D;
 using CGA.Core.Entities;
 using CGA.Core.Parser;
 using CGA.Core.Renderer;
+using CGA.Core.Shadings;
 using Microsoft.Win32;
 
 namespace CGA.MVVM.ViewModels;
@@ -17,7 +18,8 @@ public class CanvasViewModel : ObservableObject
     private WriteableBitmap? _writeableBitmap;
     private SceneManager     _sceneManager;
     private Point            _mousePosition;
-    private RendererChoices  _selectedOption;
+    private RendererType     _selectedRenderer;
+    private ShadingType      _selectedShading;
 
     #region Public properties for private fields
 
@@ -40,12 +42,22 @@ public class CanvasViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    public RendererChoices SelectedOption
+    public RendererType SelectedRenderer
     {
-        get => _selectedOption;
+        get => _selectedRenderer;
         set
         {
-            _selectedOption = value;
+            _selectedRenderer = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    public ShadingType SelectedShading
+    {
+        get => _selectedShading;
+        set
+        {
+            _selectedShading = value;
             OnPropertyChanged();
         }
     }
@@ -156,20 +168,32 @@ public class CanvasViewModel : ObservableObject
     {
         try
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            var openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
                 _filePath = openFileDialog.FileName;
             }
+            else
+            {
+                // файл не выбран
+                return;
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message);
+            MessageBox.Show($"Ошибка при выборе файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            return;
         }
-        
-        SceneManager.ObjectModel = Parser.LoadFromFile(_filePath);
-        
-        UpdateCanvas();
+
+        try
+        {
+            SceneManager.ObjectModel = Parser.LoadFromFile(_filePath);
+            UpdateCanvas();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
     
     private void UpdateCanvas()
@@ -177,9 +201,9 @@ public class CanvasViewModel : ObservableObject
         SceneManager.CameraModel.ChangeEyePosition();
         SceneManager.TransformObject();
 
-        switch (SelectedOption)
+        switch (SelectedRenderer)
         {
-            case RendererChoices.Wireframe:
+            case RendererType.Wireframe:
             {
                 WireframeRenderer.RenderModel(
                     objectModel: SceneManager.ObjectModel, 
@@ -187,17 +211,17 @@ public class CanvasViewModel : ObservableObject
                     zNear:       SceneManager.CameraModel.ZNear, 
                     zFar:        SceneManager.CameraModel.ZFar,
                     color:       new Vector3(1, 1, 1));
-                
                 break;
             }
                 
-            case RendererChoices.Rasterized:
+            case RendererType.Rasterized:
             {
-                    RasterRenderer.RenderModel(
-                        objectModel: SceneManager.ObjectModel,
-                        bitmap: WriteableBitmap,
-                        color: new Vector3(1, 1, 1),
-                        eyePos: SceneManager.CameraModel.EyePosition);
+                RasterRenderer.RenderModel(
+                    objectModel: SceneManager.ObjectModel,
+                    bitmap:      WriteableBitmap,
+                    color:       new Vector3(1, 1, 1),
+                    eyePos:      SceneManager.CameraModel.EyePosition,
+                    shading:     SelectedShading);
                 break;
             }
             

@@ -35,7 +35,7 @@ public static class Parser
             }
         }
 
-        if (model.Faces.Any(f => f.vertexNormal == Vector3.Zero))
+        if (model.Faces.Any(f => f.VertexNormal == Vector3.Zero))
         {
             model.CalcNormals(Matrix4x4.Identity);
         }
@@ -105,7 +105,7 @@ private static void ParseFace(in string line, in ObjectModel model)
     // Если в грани указаны нормали, сохраняем их индексы
     if (hasNormals)
     {
-        face.normalIndexes = faceNormals;
+        face.NormalIndexes = faceNormals;
     }
     
     model.Faces.Add(face);

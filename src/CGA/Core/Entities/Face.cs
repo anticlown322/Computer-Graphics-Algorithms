@@ -6,12 +6,11 @@ public record Face
 {
     public Face(int[] vertexIndexes)
     {
-        this.vertexIndexes = vertexIndexes;
-        vertexNormal = new Vector3();
-
+        VertexIndexes = vertexIndexes;
+        VertexNormal = new Vector3();
     }
-    public int[]? normalIndexes; 
-    public int[] vertexIndexes;
-    public Vector3 vertexNormal;
-
+    
+    public int[]? NormalIndexes; 
+    public int[] VertexIndexes;
+    public Vector3 VertexNormal;
 }

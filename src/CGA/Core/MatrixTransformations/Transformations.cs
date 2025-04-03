@@ -28,8 +28,7 @@ public static class Transformations
             yAxis.X, yAxis.Y, yAxis.Z, ty,
             zAxis.X, zAxis.Y, zAxis.Z, tz,
             0.0f, 0.0f, 0.0f, 1.0f);
-
-        //В зависимости от того какую матрицу(векторы строки векторы столбцы) ожидает *что-то что будет использовать матрицу* 
+        
         viewMatrix = Matrix4x4.Transpose(viewMatrix);
 
         return viewMatrix;
@@ -51,7 +50,6 @@ public static class Transformations
             0, 0, -1, 0
         );
         
-        //В зависимости от того какую матрицу(векторы строки векторы столбцы) ожидает *что-то что будет использовать матрицу* 
         perspectiveMatrix = Matrix4x4.Transpose(perspectiveMatrix);
 
         return perspectiveMatrix;
@@ -71,7 +69,6 @@ public static class Transformations
             0, 0, 0, 1
         );
         
-        //В зависимости от того какую матрицу(векторы строки векторы столбцы) ожидает *что-то что будет использовать матрицу* 
         viewportMatrix = Matrix4x4.Transpose(viewportMatrix);
         
         return viewportMatrix;

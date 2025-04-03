@@ -50,8 +50,4 @@
       <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
       <PackageReference Include="WindowsAPICodePack" Version="8.0.6" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Core\" />
-    </ItemGroup>
 </Project>

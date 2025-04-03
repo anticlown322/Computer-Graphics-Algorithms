@@ -21,7 +21,7 @@ public class ObjectModel
 
     public Vector3 Position { get; set; } = Vector3.Zero;
     public Vector3 Rotation { get; set; } = Vector3.Zero;
-    public Vector3 Scale { get; set; } = new Vector3(2.0f, 2.0f, 2.0f);
+    public Vector3 Scale { get; set; } = new(2.0f, 2.0f, 2.0f);
 
     #endregion
 
@@ -53,18 +53,18 @@ public class ObjectModel
         foreach (var face in Faces)
         {
             Vector3 v1 = new Vector3(
-                tempVertices[face.vertexIndexes[1] - 1].X - tempVertices[face.vertexIndexes[0] - 1].X,
-                tempVertices[face.vertexIndexes[1] - 1].Y - tempVertices[face.vertexIndexes[0] - 1].Y,
-                tempVertices[face.vertexIndexes[1] - 1].Z - tempVertices[face.vertexIndexes[0] - 1].Z);
+                tempVertices[face.VertexIndexes[1] - 1].X - tempVertices[face.VertexIndexes[0] - 1].X,
+                tempVertices[face.VertexIndexes[1] - 1].Y - tempVertices[face.VertexIndexes[0] - 1].Y,
+                tempVertices[face.VertexIndexes[1] - 1].Z - tempVertices[face.VertexIndexes[0] - 1].Z);
             
             Vector3 v2 = new Vector3(
-                tempVertices[face.vertexIndexes[2] - 1].X - tempVertices[face.vertexIndexes[0] - 1].X,
-                tempVertices[face.vertexIndexes[2] - 1].Y - tempVertices[face.vertexIndexes[0] - 1].Y,
-                tempVertices[face.vertexIndexes[2] - 1].Z - tempVertices[face.vertexIndexes[0] - 1].Z);
+                tempVertices[face.VertexIndexes[2] - 1].X - tempVertices[face.VertexIndexes[0] - 1].X,
+                tempVertices[face.VertexIndexes[2] - 1].Y - tempVertices[face.VertexIndexes[0] - 1].Y,
+                tempVertices[face.VertexIndexes[2] - 1].Z - tempVertices[face.VertexIndexes[0] - 1].Z);
             
             Vector3 surfaceNormal = Vector3.Normalize(Vector3.Cross(v1, v2));
 
-            face.vertexNormal = surfaceNormal;
+            face.VertexNormal = surfaceNormal;
         }
     }
 }

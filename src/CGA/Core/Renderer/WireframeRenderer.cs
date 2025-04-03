@@ -51,14 +51,14 @@ public static class WireframeRenderer
 
         Parallel.ForEach(objectModel.Faces, face =>
         {
-            int count = face.vertexIndexes.Length;
+            int count = face.VertexIndexes.Length;
             if (count < 2)
                 return;
 
             for (int i = 0; i < count; i++)
             {
-                int index1 = face.vertexIndexes[i] - 1;
-                int index2 = face.vertexIndexes[(i + 1) % count] - 1;
+                int index1 = face.VertexIndexes[i] - 1;
+                int index2 = face.VertexIndexes[(i + 1) % count] - 1;
 
                 if (!(index1 >= 0 && index1 < objectModel.ProjectionVertices.Length &&
                       index2 >= 0 && index2 < objectModel.ProjectionVertices.Length))

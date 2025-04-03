@@ -1,7 +1,9 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime"
-                    xmlns:viewModels="clr-namespace:CGA.MVVM.ViewModels">
+                    xmlns:viewModels="clr-namespace:CGA.MVVM.ViewModels"
+                    xmlns:renderer="clr-namespace:CGA.Core.Renderer"
+                    xmlns:shadings="clr-namespace:CGA.Core.Shadings">
     <!--Images-->
     <BitmapImage x:Key="CloseWindow" UriSource="/CGA;component/Resources/Images/close.png"/>
     <BitmapImage x:Key="MinimizeWindow" UriSource="/CGA;component/Resources/Images/minimize.png"/>
@@ -10,7 +12,15 @@
                         MethodName="GetValues"
                         ObjectType="{x:Type sys:Enum}">
         <ObjectDataProvider.MethodParameters>
-            <x:Type TypeName="viewModels:RendererChoices" />
+            <x:Type TypeName="renderer:RendererType" />
+        </ObjectDataProvider.MethodParameters>
+    </ObjectDataProvider>
+    
+    <ObjectDataProvider x:Key="ShadingChoicesProvider"
+                        MethodName="GetValues"
+                        ObjectType="{x:Type sys:Enum}">
+        <ObjectDataProvider.MethodParameters>
+            <x:Type TypeName="shadings:ShadingType" />
         </ObjectDataProvider.MethodParameters>
     </ObjectDataProvider>
 </ResourceDictionary>

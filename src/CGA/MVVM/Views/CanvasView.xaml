@@ -16,6 +16,7 @@
         <!-- Grid setup -->
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -24,6 +25,8 @@
         
         <!-- Layout -->
         <Image Grid.Column="0"
+               Grid.Row="0"
+               Grid.RowSpan="2"
                x:Name="CanvasImage"
                SnapsToDevicePixels="True"
                Stretch="Fill"
@@ -46,7 +49,9 @@
             </b:Interaction.Triggers>
         </Image>
 
-        <Border Grid.Column="1"
+        <Border Grid.Row="0" 
+                Grid.RowSpan="2"
+                Grid.Column="1"
                 Background="{StaticResource SecondaryColor_Solid}"
                 Margin="5 0 0 0"
                 Padding="5"
@@ -79,7 +84,28 @@
                           HorizontalContentAlignment="Center"
                           VerticalContentAlignment="Center"
                           ItemsSource="{Binding Source={StaticResource RendererChoicesProvider}}"
-                          SelectedItem="{Binding SelectedOption, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedRenderer, Mode=TwoWay}"
+                          DisplayMemberPath="."/>
+                
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           FontSize="20"
+                           Foreground="{StaticResource TextSecondaryColor_Solid}">
+                    Shading Mode: 
+                </TextBlock>
+                
+                <ComboBox Grid.Row="1"
+                          Grid.Column="1"
+                          MaxHeight="25"
+                          MaxWidth="125" 
+                          FontSize="16"
+                          FontWeight="Bold"
+                          HorizontalContentAlignment="Center"
+                          VerticalContentAlignment="Center"
+                          ItemsSource="{Binding Source={StaticResource ShadingChoicesProvider}}"
+                          SelectedItem="{Binding SelectedShading, Mode=TwoWay}"
                           DisplayMemberPath="."/>
             </Grid>
         </Border>
