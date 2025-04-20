@@ -2,8 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime"
                     xmlns:viewModels="clr-namespace:CGA.MVVM.ViewModels"
-                    xmlns:renderer="clr-namespace:CGA.Core.Renderer"
-                    xmlns:shadings="clr-namespace:CGA.Core.Shadings">
+                    xmlns:shadings="clr-namespace:CGA.Core.Shadings"
+                    xmlns:renderers="clr-namespace:CGA.Core.Renderers">
     <!--Images-->
     <BitmapImage x:Key="CloseWindow" UriSource="/CGA;component/Resources/Images/close.png"/>
     <BitmapImage x:Key="MinimizeWindow" UriSource="/CGA;component/Resources/Images/minimize.png"/>
@@ -12,7 +12,7 @@
                         MethodName="GetValues"
                         ObjectType="{x:Type sys:Enum}">
         <ObjectDataProvider.MethodParameters>
-            <x:Type TypeName="renderer:RendererType" />
+            <x:Type TypeName="renderers:RendererType" />
         </ObjectDataProvider.MethodParameters>
     </ObjectDataProvider>
     

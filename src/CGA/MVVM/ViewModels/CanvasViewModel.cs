@@ -1,25 +1,29 @@
+using System.IO;
 using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
 using CGA.Core.Entities;
-using CGA.Core.Parser;
-using CGA.Core.Renderer;
+using CGA.Core.Parsers;
+using CGA.Core.Renderers;
 using CGA.Core.Shadings;
 using Microsoft.Win32;
+using Material = CGA.Core.Entities.Material;
 
 namespace CGA.MVVM.ViewModels;
 
 public class CanvasViewModel : ObservableObject
 {
-    private string           _filePath = string.Empty;
+    private string _filePath = string.Empty;
     private WriteableBitmap? _writeableBitmap;
-    private SceneManager     _sceneManager;
-    private Point            _mousePosition;
-    private RendererType     _selectedRenderer;
-    private ShadingType      _selectedShading;
+    private SceneManager _sceneManager;
+    private Point _mousePosition;
+    private RendererType _selectedRenderer;
+    private ShadingType _selectedShading;
+
+    private Dictionary<string, Material> _materials;
+    private Dictionary<string, TextureMap> _textureMaps = new();
 
     #region Public properties for private fields
 
@@ -32,7 +36,7 @@ public class CanvasViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    
+
     public WriteableBitmap? WriteableBitmap
     {
         get => _writeableBitmap;
@@ -42,6 +46,7 @@ public class CanvasViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
+
     public RendererType SelectedRenderer
     {
         get => _selectedRenderer;
@@ -51,7 +56,7 @@ public class CanvasViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    
+
     public ShadingType SelectedShading
     {
         get => _selectedShading;
@@ -61,55 +66,55 @@ public class CanvasViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    
+
     #endregion
-    
+
     #region Commands
-    
+
     public RelayCommand LoadFileCommand { get; }
     public RelayCommand MouseWheelCommand { get; }
     public RelayCommand MouseMoveCommand { get; }
     public RelayCommand KeyPressCommand { get; }
-    
+
     #endregion Commands
 
     public CanvasViewModel()
     {
-        LoadFileCommand   = new RelayCommand(LoadFile);
+        LoadFileCommand = new RelayCommand(LoadFile);
         MouseWheelCommand = new RelayCommand(OnMouseWheel);
-        MouseMoveCommand  = new RelayCommand(OnMouseMove);
-        KeyPressCommand   = new RelayCommand(OnKeyPress);
-        
+        MouseMoveCommand = new RelayCommand(OnMouseMove);
+        KeyPressCommand = new RelayCommand(OnKeyPress);
+
         SceneManager = new SceneManager();
     }
-    
+
     internal void OnViewLoaded()
     {
         WriteableBitmap = new WriteableBitmap(
-            pixelWidth:  SceneManager.CanvasWidth, 
-            pixelHeight: SceneManager.CanvasHeight, 
-            dpiX:        96, 
-            dpiY:        96, 
-            pixelFormat: PixelFormats.Bgra32, 
-            palette:     null);
+            pixelWidth: SceneManager.CanvasWidth,
+            pixelHeight: SceneManager.CanvasHeight,
+            dpiX: 96,
+            dpiY: 96,
+            pixelFormat: PixelFormats.Bgra32,
+            palette: null);
     }
-    
+
     private void OnMouseWheel(object parameter)
     {
         if (SceneManager.ObjectModel is null)
             return;
 
-        if (parameter is not MouseWheelEventArgs args) 
+        if (parameter is not MouseWheelEventArgs args)
             return;
-        
+
         SceneManager.CameraModel.Radius -= args.Delta / 1000.0f;
-        
+
         if (SceneManager.CameraModel.Radius < SceneManager.CameraModel.ZNear)
             SceneManager.CameraModel.Radius = SceneManager.CameraModel.ZNear;
-        
+
         if (SceneManager.CameraModel.Radius > SceneManager.CameraModel.ZFar)
             SceneManager.CameraModel.Radius = SceneManager.CameraModel.ZFar;
-        
+
         UpdateCanvas();
     }
 
@@ -118,12 +123,12 @@ public class CanvasViewModel : ObservableObject
         if (SceneManager.ObjectModel is null)
             return;
 
-        if (parameter is not MouseEventArgs args) 
+        if (parameter is not MouseEventArgs args)
             return;
-        
+
         var currentMousePosition = args.GetPosition(null);
         var delta = currentMousePosition - _mousePosition;
-        
+
         if (args.LeftButton == MouseButtonState.Pressed)
         {
             SceneManager.ObjectModel.Rotation = new Vector3(
@@ -135,12 +140,12 @@ public class CanvasViewModel : ObservableObject
         {
             SceneManager.ObjectModel.Rotation = new Vector3(
                 SceneManager.ObjectModel.Rotation.X,
-                SceneManager.ObjectModel.Rotation.Y  + (float)delta.X * MathF.PI / 360.0f,
+                SceneManager.ObjectModel.Rotation.Y + (float)delta.X * MathF.PI / 360.0f,
                 SceneManager.ObjectModel.Rotation.Z);
         }
-        
+
         _mousePosition = currentMousePosition;
-        
+
         UpdateCanvas();
     }
 
@@ -149,7 +154,7 @@ public class CanvasViewModel : ObservableObject
         if (SceneManager.ObjectModel is null)
             return;
 
-        if (parameter is not Key key) 
+        if (parameter is not Key key)
             return;
 
         const float delta = 0.05f;
@@ -163,7 +168,7 @@ public class CanvasViewModel : ObservableObject
 
         UpdateCanvas();
     }
-    
+
     private void LoadFile(object parameter)
     {
         try
@@ -181,21 +186,59 @@ public class CanvasViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка при выборе файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Ошибка при выборе файла: {ex.Message}", "Ошибка", MessageBoxButton.OK,
+                MessageBoxImage.Error);
             return;
         }
 
         try
         {
-            SceneManager.ObjectModel = Parser.LoadFromFile(_filePath);
+            SceneManager.ObjectModel = ObjFileParser.LoadFromFile(_filePath);
+            _materials = MtlFileParser.LoadFromFile(SceneManager.ObjectModel.PathToMtlFile);
+            LoadTextureMaps();
             UpdateCanvas();
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Ошибка при загрузке файла: {ex.Message}", "Ошибка", MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
-    
+
+    private void LoadTextureMaps()
+    {
+        foreach (var material in _materials)
+        {
+            var materialValue = material.Value;
+
+            try
+            {
+                if (!_textureMaps.ContainsKey(materialValue.DiffuseMap) &&
+                    !string.IsNullOrEmpty(materialValue.DiffuseMap))
+                {
+                    _textureMaps.TryAdd(materialValue.DiffuseMap, new TextureMap(materialValue.DiffuseMap));
+                }
+
+                if (!_textureMaps.ContainsKey(materialValue.NormalMap) &&
+                    !string.IsNullOrEmpty(materialValue.NormalMap))
+                {
+                    _textureMaps.TryAdd(materialValue.NormalMap, new TextureMap(materialValue.NormalMap));
+                }
+
+                if (!_textureMaps.ContainsKey(materialValue.SpecularMap) &&
+                    !string.IsNullOrEmpty(materialValue.SpecularMap))
+                {
+                    _textureMaps.TryAdd(materialValue.SpecularMap, new TextureMap(materialValue.SpecularMap));
+                }
+            }
+            catch (FileNotFoundException ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке текстур: {ex.Message}", "Ошибка", MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+    }
+
     private void UpdateCanvas()
     {
         SceneManager.CameraModel.ChangeEyePosition();
@@ -206,25 +249,37 @@ public class CanvasViewModel : ObservableObject
             case RendererType.Wireframe:
             {
                 WireframeRenderer.RenderModel(
-                    objectModel: SceneManager.ObjectModel, 
-                    bitmap:      WriteableBitmap, 
-                    zNear:       SceneManager.CameraModel.ZNear, 
-                    zFar:        SceneManager.CameraModel.ZFar,
-                    color:       new Vector3(1, 1, 1));
+                    objectModel: SceneManager.ObjectModel,
+                    bitmap: WriteableBitmap,
+                    zNear: SceneManager.CameraModel.ZNear,
+                    zFar: SceneManager.CameraModel.ZFar,
+                    color: new Vector3(1, 1, 1));
                 break;
             }
-                
+
             case RendererType.Rasterized:
             {
                 RasterRenderer.RenderModel(
                     objectModel: SceneManager.ObjectModel,
-                    bitmap:      WriteableBitmap,
-                    color:       new Vector3(1, 1, 1),
-                    eyePos:      SceneManager.CameraModel.EyePosition,
-                    shading:     SelectedShading);
+                    bitmap: WriteableBitmap,
+                    color: new Vector3(1, 1, 1),
+                    eyePos: SceneManager.CameraModel.EyePosition,
+                    shading: SelectedShading);
                 break;
             }
-            
+
+            case RendererType.Textured:
+            {
+                TextureRenderer.RenderModel(
+                    objectModel: SceneManager.ObjectModel,
+                    bitmap: WriteableBitmap,
+                    eyePos: SceneManager.CameraModel.EyePosition,
+                    materials: _materials.Select(kvp => kvp.Value).ToList(),
+                    textureMaps: _textureMaps);
+                break;
+            }
+
+
             default:
                 throw new ArgumentOutOfRangeException();
         }

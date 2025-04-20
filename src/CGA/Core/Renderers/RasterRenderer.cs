@@ -3,34 +3,32 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using CGA.Core.Entities;
 using CGA.Core.Shadings;
-using static System.Windows.Forms.DataFormats;
 
-namespace CGA.Core.Renderer;
+namespace CGA.Core.Renderers;
 
 public static class RasterRenderer
 {
     private static float[,]? _zBuffer;
-    private static IShading? _shading;
-    private static ShadingType CurrentShading { get; set; }
+    private static FlatShading _flatShading = new();
+    private static PhongShading _phongShading = new();
 
     public static void RenderModel(ObjectModel objectModel, WriteableBitmap bitmap, Vector3 color, Vector3 eyePos, ShadingType shading)
     {
         if (bitmap is null)
             throw new ArgumentNullException(nameof(bitmap));
         
+        ClearBitmap(bitmap, new(0, 0, 0));
+        ClearZBuffer(bitmap.PixelWidth, bitmap.PixelHeight);
+
         switch (shading)
         {
             case ShadingType.Flat:
-                _shading = new FlatShading();
+                _flatShading.DrawShading(objectModel, bitmap, color, eyePos, _zBuffer);
                 break;
             case ShadingType.Phong:
-                _shading = new PhongShading();
+                _phongShading.DrawShading(objectModel, bitmap, color, eyePos, _zBuffer);
                 break;
         }
-        
-        ClearBitmap(bitmap, new(0, 0, 0));
-        ClearZBuffer(bitmap.PixelWidth, bitmap.PixelHeight);
-        _shading.DrawShading(objectModel, bitmap, color, eyePos, _zBuffer);
     }
     
     private static unsafe void ClearBitmap(WriteableBitmap bitmap, Vector3 color)

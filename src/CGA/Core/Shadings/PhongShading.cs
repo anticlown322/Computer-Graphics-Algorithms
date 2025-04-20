@@ -33,7 +33,7 @@ public class PhongShading : IShading
             // отбраковка
             int idx = face.VertexIndexes[0] - 1;
             Vector4 vertex = objectModel.GlobalVertices[idx];
-            Vector3 vertexPos = vertex.GetVector3XYZ();
+            Vector3 vertexPos = vertex.XYZ();
             Vector3 viewDirection = eyePos - vertexPos;
 
             if (Vector3.Dot(face.VertexNormal, viewDirection) < 0)
@@ -54,16 +54,16 @@ public class PhongShading : IShading
 
                 Vector3[] screenVertices =
                 [
-                    objectModel.ProjectionVertices[idx1].GetVector3XYZ(),
-                    objectModel.ProjectionVertices[idx2].GetVector3XYZ(),
-                    objectModel.ProjectionVertices[idx3].GetVector3XYZ()
+                    objectModel.ProjectionVertices[idx1].XYZ(),
+                    objectModel.ProjectionVertices[idx2].XYZ(),
+                    objectModel.ProjectionVertices[idx3].XYZ()
                 ];
                 
                 Vector3[] worldVertices =
                 [
-                    objectModel.GlobalVertices[idx1].GetVector3XYZ(),
-                    objectModel.GlobalVertices[idx2].GetVector3XYZ(),
-                    objectModel.GlobalVertices[idx3].GetVector3XYZ()
+                    objectModel.GlobalVertices[idx1].XYZ(),
+                    objectModel.GlobalVertices[idx2].XYZ(),
+                    objectModel.GlobalVertices[idx3].XYZ()
                 ];
                 
                 Vector3[] normals =
@@ -109,9 +109,9 @@ public class PhongShading : IShading
         float invDeltaY12 = 1.0f / (screenVertices[1].Y - screenVertices[0].Y);
         float invDeltaY23 = 1.0f / (screenVertices[2].Y - screenVertices[1].Y);
 
-        Vector2 edge13 = ((screenVertices[2] - screenVertices[0]) * invDeltaY13).GetVector2XY();
-        Vector2 edge12 = ((screenVertices[1] - screenVertices[0]) * invDeltaY12).GetVector2XY();
-        Vector2 edge23 = ((screenVertices[2] - screenVertices[1]) * invDeltaY23).GetVector2XY();
+        Vector2 edge13 = ((screenVertices[2] - screenVertices[0]) * invDeltaY13).XY();
+        Vector2 edge12 = ((screenVertices[1] - screenVertices[0]) * invDeltaY12).XY();
+        Vector2 edge23 = ((screenVertices[2] - screenVertices[1]) * invDeltaY23).XY();
 
         Vector3 world13 = (worldVertices[2] - worldVertices[0]) * invDeltaY13;
         Vector3 world12 = (worldVertices[1] - worldVertices[0]) * invDeltaY12;
@@ -139,8 +139,8 @@ public class PhongShading : IShading
 
             if (y < screenVertices[1].Y)
             {
-                aPoint = screenVertices[0].GetVector2XY() + edge13 * dy;
-                bPoint = screenVertices[0].GetVector2XY() + edge12 * dy;
+                aPoint = screenVertices[0].XY() + edge13 * dy;
+                bPoint = screenVertices[0].XY() + edge12 * dy;
                 aWorld = worldVertices[0] + world13 * dy;
                 bWorld = worldVertices[0] + world12 * dy;
                 aNormal = normals[0] + normal13 * dy;
@@ -151,8 +151,8 @@ public class PhongShading : IShading
             else
             {
                 dy = y - screenVertices[1].Y;
-                aPoint = screenVertices[0].GetVector2XY() + edge13 * (y - screenVertices[0].Y);
-                bPoint = screenVertices[1].GetVector2XY() + edge23 * dy;
+                aPoint = screenVertices[0].XY() + edge13 * (y - screenVertices[0].Y);
+                bPoint = screenVertices[1].XY() + edge23 * dy;
                 aWorld = worldVertices[0] + world13 * (y - screenVertices[0].Y);
                 bWorld = worldVertices[1] + world23 * dy;
                 aNormal = normals[0] + normal13 * (y - screenVertices[0].Y);

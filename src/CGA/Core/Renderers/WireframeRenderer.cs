@@ -1,10 +1,9 @@
 ﻿using System.Numerics;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using CGA.Core.Entities;
 
-namespace CGA.Core.Renderer;
+namespace CGA.Core.Renderers;
 
 public static class WireframeRenderer
 {

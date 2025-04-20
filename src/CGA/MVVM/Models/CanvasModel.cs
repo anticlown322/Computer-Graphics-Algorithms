@@ -4,8 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CGA.Core.Entities;
-using CGA.Core.Parser;
-using CGA.Core.Renderer;
 
 namespace CGA.MVVM.Models;
 

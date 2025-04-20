@@ -25,7 +25,7 @@ public class FlatShading : IShading
 
             // отбраковка
             int idx = face.VertexIndexes[0] - 1;
-            Vector3 vertexPos = objectModel.GlobalVertices[idx].GetVector3XYZ();
+            Vector3 vertexPos = objectModel.GlobalVertices[idx].XYZ();
             Vector3 viewDirection = eyePos - vertexPos;
 
             if (Vector3.Dot(face.VertexNormal, viewDirection) < 0)
@@ -52,9 +52,9 @@ public class FlatShading : IShading
                 int idx2 = face.VertexIndexes[i] - 1;
                 int idx3 = face.VertexIndexes[i + 1] - 1;
 
-                Vector3 screenVertex1 = objectModel.ProjectionVertices[idx1].GetVector3XYZ();
-                Vector3 screenVertex2 = objectModel.ProjectionVertices[idx2].GetVector3XYZ();
-                Vector3 screenVertex3 = objectModel.ProjectionVertices[idx3].GetVector3XYZ();
+                Vector3 screenVertex1 = objectModel.ProjectionVertices[idx1].XYZ();
+                Vector3 screenVertex2 = objectModel.ProjectionVertices[idx2].XYZ();
+                Vector3 screenVertex3 = objectModel.ProjectionVertices[idx3].XYZ();
 
                 RasterWithScanningLine(
                     vertex1: screenVertex1,

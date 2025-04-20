@@ -14,7 +14,6 @@ public class ObjectModel
     public List<Face> Faces { get; set; } = [];
     public List<Vector3> Normals { get; set; } = []; 
 
-
     #endregion
 
     #region For transformations
@@ -25,6 +24,13 @@ public class ObjectModel
 
     #endregion
 
+    #region For textures
+
+    public string PathToMtlFile { get; set; }
+    public List<Vector3> TextureCoords { get; } = [];
+
+    #endregion 
+    
     public void Transform(Matrix4x4 transformMatrix, float zNear, float zFar)
     {
         for (var i = 0; i < LocalVertices.Count; i++)
