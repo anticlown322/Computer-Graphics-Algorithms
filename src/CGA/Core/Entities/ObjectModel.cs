@@ -2,8 +2,6 @@
 
 namespace CGA.Core.Entities;
 
-
-
 public class ObjectModel
 {
     #region Vertices
@@ -12,7 +10,8 @@ public class ObjectModel
     public Vector4[] GlobalVertices { get; set; } = [];
     public Vector4[] ProjectionVertices { get; set; } = [];
     public List<Face> Faces { get; set; } = [];
-    public List<Vector3> Normals { get; set; } = []; 
+    public List<Vector3> Normals { get; set; } = [];
+    public float[] WValues { get; set; } = [];
 
     #endregion
 
@@ -29,14 +28,16 @@ public class ObjectModel
     public string PathToMtlFile { get; set; }
     public List<Vector3> TextureCoords { get; } = [];
 
-    #endregion 
-    
+    #endregion
+
     public void Transform(Matrix4x4 transformMatrix, float zNear, float zFar)
     {
         for (var i = 0; i < LocalVertices.Count; i++)
         {
             var vertexVector = Vector4.Transform(LocalVertices[i], transformMatrix);
 
+            WValues[i] = vertexVector.W;
+            
             if (vertexVector.W > zNear && vertexVector.W < zFar)
                 vertexVector /= vertexVector.W;
 
@@ -49,7 +50,7 @@ public class ObjectModel
         for (var i = 0; i < LocalVertices.Count; i++)
             GlobalVertices[i] = Vector4.Transform(LocalVertices[i], worldMatrix);
     }
-    
+
     public void CalcNormals(Matrix4x4 transformMatrix)
     {
         Vector4[] tempVertices = new Vector4[LocalVertices.Count];
@@ -62,12 +63,12 @@ public class ObjectModel
                 tempVertices[face.VertexIndexes[1] - 1].X - tempVertices[face.VertexIndexes[0] - 1].X,
                 tempVertices[face.VertexIndexes[1] - 1].Y - tempVertices[face.VertexIndexes[0] - 1].Y,
                 tempVertices[face.VertexIndexes[1] - 1].Z - tempVertices[face.VertexIndexes[0] - 1].Z);
-            
+
             Vector3 v2 = new Vector3(
                 tempVertices[face.VertexIndexes[2] - 1].X - tempVertices[face.VertexIndexes[0] - 1].X,
                 tempVertices[face.VertexIndexes[2] - 1].Y - tempVertices[face.VertexIndexes[0] - 1].Y,
                 tempVertices[face.VertexIndexes[2] - 1].Z - tempVertices[face.VertexIndexes[0] - 1].Z);
-            
+
             Vector3 surfaceNormal = Vector3.Normalize(Vector3.Cross(v1, v2));
 
             face.VertexNormal = surfaceNormal;

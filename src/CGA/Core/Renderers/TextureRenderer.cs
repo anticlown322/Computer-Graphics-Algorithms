@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -9,6 +10,7 @@ using System.Windows.Media.TextFormatting;
 using CGA.Core.Entities;
 using CGA.Core.Shadings;
 using CGA.Core.Utils;
+using Vector = System.Numerics.Vector;
 
 namespace CGA.Core.Renderers;
 
@@ -30,12 +32,12 @@ public static class TextureRenderer
 
     private static unsafe void ClearBitmap(WriteableBitmap bitmap, Vector3 color)
     {
-        int intColor = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
+        var intColor = 255 << 24 | (int)(255 * color.X) << 16 | (int)(255 * color.Y) << 8 | (int)(255 * color.Z);
 
         bitmap.Lock();
 
-        int* pBackBuffer = (int*)bitmap.BackBuffer;
-        for (int i = 0; i < bitmap.PixelWidth * bitmap.PixelHeight; i++)
+        var pBackBuffer = (int*)bitmap.BackBuffer;
+        for (var i = 0; i < bitmap.PixelWidth * bitmap.PixelHeight; i++)
         {
             pBackBuffer[i] = intColor;
         }
@@ -63,39 +65,18 @@ public static class TextureRenderer
         bitmap.Lock();
         var buffer = (int*)bitmap.BackBuffer;
 
-        float ambientCoeff = 0.12f;
-        Color ambientColor = Colors.White;
-        float diffuseCoeff = 1.0f;
-        Color diffuseColor = Colors.White;
-        float specularCoeff = 0.5f;
-        Color specularColor = Colors.White;
-        float shininess = 32;
-        Color backgroundColor = Colors.Purple;
+        var ambientCoeff = 0.12f;
+        var ambientColor = Colors.Black;
+        var specularCoeff = 0.5f;
+        var specularColor = Colors.Black;
+        var diffuseCoeff = 1.0f;
+        var shininess = 32;
 
-        var lights = new[]
-        {
+        var light1 = (eyePos + new Vector3(2, 2, 2), Color.FromScRgb(1.0f, 1.0f, 0.9f, 0.8f), 0.3f);
+        // var light2 = (eyePos + new Vector3(-2, -1, -1), Color.FromScRgb(1.0f, 0.9f, 0.95f, 1.0f), 0.5f);
+        // var light3 = (eyePos + new Vector3(0, 0, -3), Colors.White, 0.3f);
 
-        new
-        {
-        SourceOfLight = eyePos + new Vector3(2, 2, 2),
-        Color = Color.FromScRgb(1.0f, 1.0f, 0.9f, 0.8f), 
-        Intensity = 0.3f 
-        },
-
-        new
-        {
-        SourceOfLight = eyePos + new Vector3(-2, -1, -1),
-        Color = Color.FromScRgb(1.0f, 0.9f, 0.95f, 1.0f),
-        Intensity = 0.5f
-        },
-
-        new
-        {
-        SourceOfLight = eyePos + new Vector3(0, 0, -3),
-        Color = Colors.White,
-        Intensity = 0.3f
-        }
-};
+        var lights = new[] { light1 };
 
         Parallel.ForEach(objectModel.Faces, face =>
         {
@@ -113,7 +94,7 @@ public static class TextureRenderer
 
                 Vector3[] screenVertices =
                 [
-                    objectModel.ProjectionVertices[idx1].XYZ(),
+                    objectModel.ProjectionVertices[idx1].XYZ() ,
                     objectModel.ProjectionVertices[idx2].XYZ(),
                     objectModel.ProjectionVertices[idx3].XYZ()
                 ];
@@ -134,9 +115,9 @@ public static class TextureRenderer
 
                 Vector3[] textureCoords =
                 [
-                    objectModel.TextureCoords[face.TextureIndexes[0] - 1],
-                    objectModel.TextureCoords[face.TextureIndexes[i] - 1],
-                    objectModel.TextureCoords[face.TextureIndexes[i + 1] - 1]
+                    objectModel.TextureCoords[face.TextureIndexes[0] - 1] / objectModel.WValues[idx1],
+                    objectModel.TextureCoords[face.TextureIndexes[i] - 1] / objectModel.WValues[idx2],
+                    objectModel.TextureCoords[face.TextureIndexes[i + 1] - 1] / objectModel.WValues[idx3]
                 ];
 
                 RasterTriangleWithTexture(
@@ -153,7 +134,6 @@ public static class TextureRenderer
                     ambientCoeff: ambientCoeff,
                     ambientColor: ambientColor,
                     diffuseCoeff: diffuseCoeff,
-                    diffuseColor: diffuseColor,
                     specularCoeff: specularCoeff,
                     specularColor: specularColor,
                     shininess: shininess);
@@ -172,7 +152,8 @@ public static class TextureRenderer
 
 
     private static (TextureMap? diffuseTexture, TextureMap? normalTexture, TextureMap? specularTexture)
-        GetTexturesForFace(List<Entities.Material> materials, string materialName, Dictionary<string, TextureMap> textureMaps)
+        GetTexturesForFace(List<Entities.Material> materials, string materialName,
+            Dictionary<string, TextureMap> textureMaps)
     {
         var material = materials.FirstOrDefault(a => a.Name == materialName);
         TextureMap? diffuseTexture = null;
@@ -199,39 +180,34 @@ public static class TextureRenderer
         int* buffer,
         Vector3 eyePos,
         (TextureMap? diffuseTexture, TextureMap? normalTexture, TextureMap? specularTexture) textures,
-        dynamic[] lights,
+        (Vector3 SourceOfLight, Color Color, float Intensity)[] lights,
         float ambientCoeff,
         Color ambientColor,
         float diffuseCoeff,
-        Color diffuseColor,
         float specularCoeff,
         Color specularColor,
         float shininess)
     {
-        Vector4 v0 = new Vector4(screenVertices[0], 1);
-        Vector4 v1 = new Vector4(screenVertices[1], 1);
-        Vector4 v2 = new Vector4(screenVertices[2], 1);
+        var v0 = screenVertices[0];
+        var v1 = screenVertices[1];
+        var v2 = screenVertices[2];
 
-        Vector4 n0 = new Vector4(normals[0], 0);
-        Vector4 n1 = new Vector4(normals[1], 0);
-        Vector4 n2 = new Vector4(normals[2], 0);
+        var world0 = worldVertices[0];
+        var world1 = worldVertices[1];
+        var world2 = worldVertices[2];
 
-        Vector3 uv0 = textureCoordinates[0];
-        Vector3 uv1 = textureCoordinates[1];
-        Vector3 uv2 = textureCoordinates[2];
+        var n0 = normals[0];
+        var n1 = normals[1];
+        var n2 = normals[2];
 
-        Vector4 world0 = new Vector4(worldVertices[0], 1);
-        Vector4 world1 = new Vector4(worldVertices[1], 1);
-        Vector4 world2 = new Vector4(worldVertices[2], 1);
+        var uv0 = textureCoordinates[0];
+        var uv1 = textureCoordinates[1];
+        var uv2 = textureCoordinates[2];
 
         var modelWorldMatrix = Matrix4x4.Identity;
-
-        uv0 *= v0.W;
-        uv1 *= v1.W;
-        uv2 *= v2.W;
-
         int* bufferPtr = buffer;
 
+        // boundings
         var xMin = (int)Math.Round(MathF.Min(v0.X, MathF.Min(v1.X, v2.X)));
         var yMin = (int)Math.Round(MathF.Min(v0.Y, MathF.Min(v1.Y, v2.Y)));
         var xMax = (int)Math.Round(MathF.Max(v0.X, MathF.Max(v1.X, v2.X)));
@@ -242,7 +218,7 @@ public static class TextureRenderer
         xMin = Math.Max(0, xMin);
         yMin = Math.Max(0, yMin);
 
-        float denom = (v2.X - v0.X) * (v1.Y - v0.Y) - (v2.Y - v0.Y) * (v1.X - v0.X);
+        var denom = (v2.X - v0.X) * (v1.Y - v0.Y) - (v2.Y - v0.Y) * (v1.X - v0.X);
         if (Math.Abs(denom) < float.Epsilon)
             return;
 
@@ -256,81 +232,71 @@ public static class TextureRenderer
                 if (x < 0 || x >= width)
                     continue;
 
-                Vector4 pixel = new Vector4(x, y, 0, 1);
+                var pixel = new Vector2(x, y);
 
-                float alpha = (pixel.X - v1.X) * (v2.Y - v1.Y) - (pixel.Y - v1.Y) * (v2.X - v1.X);
-                float beta = (pixel.X - v2.X) * (v0.Y - v2.Y) - (pixel.Y - v2.Y) * (v0.X - v2.X);
-                float gamma = (pixel.X - v0.X) * (v1.Y - v0.Y) - (pixel.Y - v0.Y) * (v1.X - v0.X);
+                var alpha = (pixel.X - v1.X) * (v2.Y - v1.Y) - (pixel.Y - v1.Y) * (v2.X - v1.X);
+                var beta = (pixel.X - v2.X) * (v0.Y - v2.Y) - (pixel.Y - v2.Y) * (v0.X - v2.X);
+                var gamma = (pixel.X - v0.X) * (v1.Y - v0.Y) - (pixel.Y - v0.Y) * (v1.X - v0.X);
 
-                if (alpha >= 0 && beta >= 0 && gamma >= 0)
-                {
-                    var w0_Old = v0.W;
-                    var w1_Old = v1.W;
-                    var w2_Old = v2.W;
+                if (!(alpha >= 0) || !(beta >= 0) || !(gamma >= 0))
+                    continue;
 
-                    alpha /= denom;
-                    beta /= denom;
-                    gamma /= denom;
+                alpha /= denom;
+                beta /= denom;
+                gamma /= denom;
 
-                    float depth = v0.Z * alpha + v1.Z * beta + v2.Z * gamma;
-                    float depthW = v0.W * alpha + v1.W * beta + v2.W * gamma;
+                var depth = v0.Z * alpha + v1.Z * beta + v2.Z * gamma;
+                depth = 1.0f / depth;
+                
+                //
+                Vector3 uv = alpha * uv0 + beta * uv1 + gamma * uv2;
+                uv /= uv.Z;
 
-                    var index = y * width + x;
+                //
+                var u = Math.Clamp(uv.X, 0.0f, 1.0f);
+                var v = 1.0f - uv.Y;
+                
+                v = Math.Clamp(v, 0.0f, 1.0f);
 
-                    depth = 1.0f / depth;
+                var index = y * width + x;
 
-                    if (_zBuffer != null && depth > _zBuffer[index])
-                    {
-                        float div = alpha / w0_Old + beta / w1_Old + gamma / w2_Old;
+                if (_zBuffer == null || !(depth > _zBuffer[index]))
+                    continue;
 
-                        float u = ((alpha * uv0.X) + (beta * uv1.X) + (gamma * uv2.X)) / depthW;
-                        float v = ((alpha * uv0.Y) + (beta * uv1.Y) + (gamma * uv2.Y)) / depthW;
+                var diffuseSample = textures.diffuseTexture.GetColor(u, v);
+                var normal = GetNormal(textures.normalTexture, u, v, n0, n1, n2, alpha, beta, gamma, modelWorldMatrix);
+                (Color specularSample, float specularStrength) =
+                    GetSpecular(textures.specularTexture, u, v, specularCoeff, specularColor);
 
-                        v = 1.0f - v;
-                        u = Math.Clamp(u, 0.0f, 1.0f);
-                        v = Math.Clamp(v, 0.0f, 1.0f);
+                var position = world0 * alpha + world1 * beta + world2 * gamma;
 
-                        Color diffuseSample = SampleDiffuseColor(textures.diffuseTexture, u, v);
-                        Vector3 normal = SampleNormal(textures.normalTexture, u, v, n0, n1, n2, alpha, beta, gamma, modelWorldMatrix);
-                        (Color specularSample, float specularStrength) = SampleSpecular(textures.specularTexture, u, v, specularCoeff, specularColor);
+                var color = ShadePhong(
+                    normal, position, lights, ambientCoeff, ambientColor,
+                    diffuseCoeff, diffuseSample,
+                    specularStrength, specularSample,
+                    shininess, eyePos);
 
-                        Vector4 position4 = (world0 * alpha + world1 * beta + world2 * gamma);
-                        Vector3 position = new Vector3(position4.X, position4.Y, position4.Z);
-
-                        int phongColor = ApplyPhongShading(
-                            normal, position, lights, ambientCoeff, ambientColor,
-                            diffuseCoeff, diffuseColor, diffuseSample,
-                            specularStrength, specularSample,
-                            shininess, eyePos);
-
-                        _zBuffer[index] = depth;
-                        bufferPtr[index] = phongColor;
-                    }
-                }
+                _zBuffer[index] = depth;
+                bufferPtr[index] = color;
             }
         }
     }
 
-    private static Color SampleDiffuseColor(TextureMap? diffuseTexture, float u, float v)
-    {
-        return diffuseTexture?.GetColor(u, v) ?? Colors.Fuchsia;
-    }
-
-    private static Vector3 SampleNormal(
+    private static Vector3 GetNormal(
         TextureMap? normalMap,
         float u, float v,
-        Vector4 n0, Vector4 n1, Vector4 n2,
+        Vector3 n0, Vector3 n1, Vector3 n2,
         float alpha, float beta, float gamma,
         Matrix4x4 modelWorldMatrix)
     {
         if (normalMap == null)
         {
-            Vector4 normal4 = (n0 * alpha + n1 * beta + n2 * gamma);
-            return new Vector3(normal4.X, normal4.Y, normal4.Z);
+            var normal = n0 * alpha + n1 * beta + n2 * gamma;
+            return normal;
         }
 
-        Color normalColor = normalMap.GetColor(u, v);
-        Vector3 sampledNormal = new Vector3(
+        var normalColor = normalMap.GetColor(u, v);
+        var sampledNormal = new Vector3(
             normalColor.ScR * 2 - 1,
             normalColor.ScG * 2 - 1,
             normalColor.ScB * 2 - 1
@@ -340,14 +306,14 @@ public static class TextureRenderer
         return Vector3.Normalize(sampledNormal);
     }
 
-    private static (Color specularColor, float specularCoeff) SampleSpecular(
+    private static (Color specularColor, float specularCoeff) GetSpecular(
         TextureMap? specularMap,
         float u, float v,
         float baseSpecularCoeff,
         Color baseSpecularColor)
     {
-        float specularStrength = 1.0f;
-        Color specularSample = baseSpecularColor;
+        var specularStrength = 1.0f;
+        var specularSample = baseSpecularColor;
 
         if (specularMap != null)
         {
@@ -355,51 +321,48 @@ public static class TextureRenderer
             specularStrength = (specularSample.ScR + specularSample.ScG + specularSample.ScB) / 3.0f;
         }
 
-        float specularCoeff = baseSpecularCoeff * specularStrength;
+        var specularCoeff = baseSpecularCoeff * specularStrength;
         return (specularSample, specularCoeff);
     }
 
-    private static int ApplyPhongShading(
-    Vector3 normal,
-    Vector3 center,
-    dynamic[] lights,
-    float ambientCoeff,
-    Color ambientColor,
-    float diffuseCoeff,
-    Color diffuseColor,
-    Color diffuseSample,
-    float specularCoeff,
-    Color specularColor,
-    float shininess,
-    Vector3 eyePos)
+    private static int ShadePhong(
+        Vector3 normal,
+        Vector3 center,
+        (Vector3 SourceOfLight, Color Color, float Intensity)[] lights,
+        float ambientCoeff,
+        Color ambientColor,
+        float diffuseCoeff,
+        Color diffuseSample,
+        float specularCoeff,
+        Color specularColor,
+        float shininess,
+        Vector3 eyePos)
     {
         normal = Vector3.Normalize(normal);
-        Vector3 viewDir = Vector3.Normalize(eyePos - center);
+        var viewDir = Vector3.Normalize(eyePos - center);
 
-        float rColor = ambientColor.ScR * ambientCoeff;
-        float gColor = ambientColor.ScG * ambientCoeff;
-        float bColor = ambientColor.ScB * ambientCoeff;
+        var rColor = ambientColor.ScR * ambientCoeff;
+        var gColor = ambientColor.ScG * ambientCoeff;
+        var bColor = ambientColor.ScB * ambientCoeff;
 
         foreach (var light in lights)
         {
-            Vector3 lightDirection = Vector3.Normalize(light.SourceOfLight - center);
-            float dot = Vector3.Dot(normal, lightDirection);
+            var lightDirection = Vector3.Normalize(light.SourceOfLight - center);
+            var dot = Vector3.Dot(normal, lightDirection);
 
-            // Двустороннее освещение - учитываем обе стороны
-            float intensity = MathF.Abs(dot) * light.Intensity;
+            if (dot <= 0)
+                continue; 
+
+            var intensity = dot * light.Intensity;
 
             rColor += intensity * light.Color.ScR * diffuseCoeff * diffuseSample.ScR;
             gColor += intensity * light.Color.ScG * diffuseCoeff * diffuseSample.ScG;
             bColor += intensity * light.Color.ScB * diffuseCoeff * diffuseSample.ScB;
 
-            // Блики только для лицевой стороны
-            if (dot > 0)
-            {
-                float specular = CalcSpecular(normal, lightDirection, viewDir, shininess);
-                rColor += (specularCoeff * specular) * light.Color.ScR * specularColor.ScR;
-                gColor += (specularCoeff * specular) * light.Color.ScG * specularColor.ScG;
-                bColor += (specularCoeff * specular) * light.Color.ScB * specularColor.ScB;
-            }
+            var specular = CalcSpecular(normal, lightDirection, viewDir, shininess);
+            rColor += specularCoeff * specular * light.Color.ScR * specularColor.ScR;
+            gColor += specularCoeff * specular * light.Color.ScG * specularColor.ScG;
+            bColor += specularCoeff * specular * light.Color.ScB * specularColor.ScB;
         }
 
         // Gamma correction
@@ -416,8 +379,8 @@ public static class TextureRenderer
 
     private static float CalcSpecular(Vector3 normal, Vector3 lightDirection, Vector3 viewDir, float shininess)
     {
-        Vector3 reflectedLight = Vector3.Reflect(-lightDirection, normal);
-        float specFactor = MathF.Max(Vector3.Dot(reflectedLight, viewDir), 0.0f);
+        var reflectedLight = Vector3.Reflect(-lightDirection, normal);
+        var specFactor = MathF.Max(Vector3.Dot(reflectedLight, viewDir), 0.0f);
         return MathF.Pow(specFactor, shininess);
     }
 }

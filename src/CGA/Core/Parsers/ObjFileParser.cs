@@ -56,6 +56,7 @@ public static class ObjFileParser
 
         model.GlobalVertices = new Vector4[model.LocalVertices.Count];
         model.ProjectionVertices = new Vector4[model.LocalVertices.Count];
+        model.WValues = new float[model.LocalVertices.Count];
 
         return model;
     }
@@ -157,8 +158,8 @@ public static class ObjFileParser
         var textureParts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         var u = float.Parse(textureParts[1], CultureInfo.InvariantCulture);
-        var v = textureParts.Length >= 3 ? float.Parse(textureParts[2], CultureInfo.InvariantCulture) : 0;
-        var w = textureParts.Length >= 4 ? float.Parse(textureParts[3], CultureInfo.InvariantCulture) : 0;
+        var v = textureParts.Length >= 3 ? float.Parse(textureParts[2], CultureInfo.InvariantCulture) : 0.0f;
+        var w = textureParts.Length >= 4 ? float.Parse(textureParts[3], CultureInfo.InvariantCulture) : 1.0f;
         
         model.TextureCoords.Add(new Vector3(u, v, w));
     }
